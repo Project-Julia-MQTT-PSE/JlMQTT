@@ -1,5 +1,4 @@
-# MqttMsgBase
-module Mqtt
+module JlMqtt
 # CONSTANTS
 #############
 
