@@ -4,6 +4,12 @@ const MAX_TOPIC_LENGTH = 65535;
 const MIN_TOPIC_LENGTH = 1;
 const MESSAGE_ID_SIZE = 2;
 
+#=Represent a PUBLISH Package which can be send to the Broker
+fixedHeader = the FixedHeader value
+topic = topic to which the message will be published
+message = to be published message
+messageId = OPTIONAL, only required if QoS level is set to level 1 or 2, to identify a specific message
+=#
 struct MqqtMsgPublish
   msgPackage::Array{UInt8,1}
   function MqqtMsgPublish(fixedHeader::UInt8, topic::String, message::String; messageId::UInt8 = 0x00)
