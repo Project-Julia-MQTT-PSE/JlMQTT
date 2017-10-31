@@ -10,9 +10,9 @@ topic = topic to which the message will be published
 message = to be published message
 messageId = OPTIONAL, only required if QoS level is set to level 1 or 2, to identify a specific message
 =#
-struct MqqtMsgPublish
+struct MqttMsgPublish
   msgPackage::Array{UInt8,1}
-  function MqqtMsgPublish(fixedHeader::UInt8, topic::String, message::String; messageId::UInt8 = 0x00)
+  function MqttMsgPublish(fixedHeader::UInt8, topic::String, message::String; messageId::UInt8 = 0x00)
     fixedHeaderSize::Int = 0
     varHeaderSize::Int = 0
     payloadSize::Int = 0
@@ -113,5 +113,5 @@ struct MqqtMsgPublish
 
 end
 #Test function call
-#m = MqqtMsgPublish(0x35, "asecd", "test", messageId = 0x12)
+#m = MqttMsgPublish(0x35, "asecd", "test", messageId = 0x12)
 end
