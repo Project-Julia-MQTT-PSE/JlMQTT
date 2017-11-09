@@ -100,6 +100,8 @@ function Serialize(msgConnect::MqttMsgConnect)
     remainingLength::Int = 0
     index::Int = 1
 
+    msgPacket = 0
+
     willTopicUtf8 = 0
     willMessageUtf8 = 0
     clientIdUtf8 = 0
@@ -194,8 +196,8 @@ function Serialize(msgConnect::MqttMsgConnect)
         break
       end
     end
-    msgPackage = Array{UInt8, 1}(fixedHeaderSize + varHeaderSize + payloadSize)
-    msgPackage[index] = msgConnect.msgBase.fixedHeader
+    msgPacket = Array{UInt8, 1}(fixedHeaderSize + varHeaderSize + payloadSize)
+    msgPacket[index] = msgConnect.msgBase.fixedHeader
     index += 1
 
     #Encode remaining length part for fixed header
@@ -206,115 +208,64 @@ function Serialize(msgConnect::MqttMsgConnect)
       if remainingLength > 0
         digit = digit | 0x80
       end
-      msgPackage[index] = convert(UInt8, digit)
+      msgPacket[index] = convert(UInt8, digit)
       index += 1
       remainingLength > 0 ? 0 : break
     end
 
     #Move protocol name to packageBuffer
-    #First MSB byte
-    msgPackage[index] = (length(protocolNameUtf8) >> 8) & 0x00FF
-    index += 1
-    #Second LSB byte
-    msgPackage[index] = length(protocolNameUtf8) & 0x00FF
-    index += 1
-    #Copy protocolName to package
-    for c in protocolNameUtf8
-      msgPackage[index] = c
-      index += 1
-    end
+    index = addPacketField(msgPacket, protocolNameUtf8, index)
     # Copy protocol version MQTT 3.1.1 == 4 to package
-    msgPackage[index] = msgConnect.protocolLevel
+    msgPacket[index] = msgConnect.protocolLevel
     index += 1
-
     # Set connect flags
-    msgPackage[index] = msgConnect.flags
+    msgPacket[index] = msgConnect.flags
     index += 1
-
     # keep alive period
     # MSB
-    msgPackage[index] = (msgConnect.keepAlivePeriod >> 8) & 0x00FF
+    msgPacket[index] = (msgConnect.keepAlivePeriod >> 8) & 0x00FF
     index += 1
     # LSB
-    msgPackage[index] = msgConnect.keepAlivePeriod & 0x00FF
+    msgPacket[index] = msgConnect.keepAlivePeriod & 0x00FF
     index += 1
-
     # client identifier
-    # MSB
-    msgPackage[index] = (length(clientIdUtf8) >> 8) & 0x00FF
-    index += 1
-    # LSB
-    msgPackage[index] = length(clientIdUtf8) & 0x00FF
-    index += 1
-    #Copy client id to Package
-    for c in clientIdUtf8
-      msgPackage[index] = c
-      index += 1
-    end
-
+    index = addPacketField(msgPacket, clientIdUtf8, index)
     # will topic
     if msgConnect.willFlag && (willTopicUtf8 != 0)
-      # MSB
-      msgPackage[index] = (length(willTopicUtf8) >> 8) & 0x00FF
-      index += 1
-      # LSB
-      msgPackage[index] = length(willTopicUtf8) & 0x00FF
-      index += 1
-      #Copy will topic to Package
-      for c in willTopicUtf8
-        msgPackage[index] = c
-        index += 1
-      end
+      index = addPacketField(msgPacket, willTopicUtf8, index)
     end
-
     # will message
     if msgConnect.willFlag && (willMessageUtf8 != 0)
-      # MSB
-      msgPackage[index] = (endof(willMessageUtf8) >> 8) & 0x00FF
-      index += 1
-      # LSB
-      msgPackage[index] = endof(willMessageUtf8) & 0x00FF
-      index += 1
-      for c in willMessageUtf8
-        msgPackage[index] = c
-        index += 1
-      end
+      index = addPacketField(msgPacket, willMessageUtf8, index)
     end
-
     # username
     if usernameUtf8 != 0
-      # MSB
-      msgPackage[index] = (length(usernameUtf8) >> 8) & 0x00FF
-      index += 1
-      # LSB
-      msgPackage[index] = length(usernameUtf8) & 0x00FF
-      index += 1
-      for c in usernameUtf8
-        msgPackage[index] = c
-        index += 1
-      end
+      index = addPacketField(msgPacket, usernameUtf8, index)
     end
-
     # password
     if passwordUtf8 != 0
-      # MSB
-      msgPackage[index] = (length(passwordUtf8) >> 8) & 0x00FF
-      index += 1
-      # LSB
-      msgPackage[index] = length(passwordUtf8) & 0x00FF
-      index += 1
-      for c in passwordUtf8
-        msgPackage[index] = c
-        index += 1
-      end
+        index = addPacketField(msgPacket, passwordUtf8, index)
     end
 
-    return msgPackage
+    return msgPacket
 end
 
-"""
+function addPacketField(dest::Array{UInt8, 1}, src::Array{UInt8, 1}, idx::Int)
+    # MSB
+    dest[idx] = (length(src) >> 8) & 0x00FF
+    idx += 1
+    # LSB
+    dest[idx] = length(src) & 0x00FF
+    idx += 1
+    for char in src
+      dest[idx] = char
+      idx += 1
+    end
+    return idx
+end
+
+
 m = MqttMsgConnect(String("clientId123"))
 println(m)
 b = Serialize(m)
 println(b)
-"""
