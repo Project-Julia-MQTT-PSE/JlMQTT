@@ -78,3 +78,32 @@ mutable struct MqttMsgBase
         return this
     end
 end #struct
+
+function encodeRemainingLength(remainingLength::Int, buffer::Array{UInt8, 1}, idx)
+    digit::Int = 0
+    while true
+      digit = mod(remainingLength,UInt8)
+      remainingLength = round(remainingLength / 128)
+      if remainingLength > 0
+        digit = digit | 0x80
+      end
+      buffer[idx] = convert(UInt8, digit)
+      idx += 1
+      remainingLength > 0 ? 0 : break
+    end
+    return idx
+end
+
+function addPacketField(dest::Array{UInt8, 1}, src::Array{UInt8, 1}, idx::Int)
+    # MSB
+    dest[idx] = (length(src) >> 8) & 0x00FF
+    idx += 1
+    # LSB
+    dest[idx] = length(src) & 0x00FF
+    idx += 1
+    for char in src
+      dest[idx] = char
+      idx += 1
+    end
+    return idx
+end

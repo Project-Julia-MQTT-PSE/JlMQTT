@@ -201,17 +201,7 @@ function Serialize(msgConnect::MqttMsgConnect)
     index += 1
 
     #Encode remaining length part for fixed header
-    digit::Int = 0
-    while true
-      digit = mod(remainingLength,UInt8)
-      remainingLength = round(remainingLength / 128)
-      if remainingLength > 0
-        digit = digit | 0x80
-      end
-      msgPacket[index] = convert(UInt8, digit)
-      index += 1
-      remainingLength > 0 ? 0 : break
-    end
+    index = encodeRemainingLength(remainingLength, msgPacket, index)
 
     #Move protocol name to packageBuffer
     index = addPacketField(msgPacket, protocolNameUtf8, index)
@@ -250,22 +240,9 @@ function Serialize(msgConnect::MqttMsgConnect)
     return msgPacket
 end
 
-function addPacketField(dest::Array{UInt8, 1}, src::Array{UInt8, 1}, idx::Int)
-    # MSB
-    dest[idx] = (length(src) >> 8) & 0x00FF
-    idx += 1
-    # LSB
-    dest[idx] = length(src) & 0x00FF
-    idx += 1
-    for char in src
-      dest[idx] = char
-      idx += 1
-    end
-    return idx
-end
-
-
+"""
 m = MqttMsgConnect(String("clientId123"))
 println(m)
 b = Serialize(m)
 println(b)
+"""
