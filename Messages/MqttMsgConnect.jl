@@ -71,7 +71,6 @@ mutable struct MqttMsgConnect <: MqttPacket
         this.keepAlivePeriod = keepAlivePeriod
         this.protocolName = protocolName
         this.protocolLevel = protocolLevel
-        this.flags = flags
 
         # Set connect flags
         flags |= (length(username) > 0) ? (1 << USERNAME_FLAG_OFFSET) : flags
@@ -83,7 +82,8 @@ mutable struct MqttMsgConnect <: MqttPacket
         end
         flags |= (willFlag) ? (1 << WILL_FLAG_OFFSET) : flags
         flags |= (cleanSession) ? (1 << CLEAN_SESSION_FLAG_OFFSET) : flags
-
+        this.flags = flags
+        
         return this
     end # function
 end # struct
