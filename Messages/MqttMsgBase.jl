@@ -79,6 +79,7 @@ mutable struct MqttMsgBase
     end
 end #struct
 
+
 function encodeRemainingLength(remainingLength::Int, buffer::Array{UInt8, 1}, idx)
     digit::Int = 0
     while true
@@ -94,16 +95,21 @@ function encodeRemainingLength(remainingLength::Int, buffer::Array{UInt8, 1}, id
     return idx
 end
 
-function addPacketField(dest::Array{UInt8, 1}, src::Array{UInt8, 1}, idx::Int)
-    # MSB
-    dest[idx] = (length(src) >> 8) & 0x00FF
-    idx += 1
-    # LSB
-    dest[idx] = length(src) & 0x00FF
-    idx += 1
-    for char in src
-      dest[idx] = char
-      idx += 1
+#
+# TODO: receive bytes from network stream
+#
+function decodeRemainingLength(network)
+    multiplier::Int = 1
+    value::Int = 0
+    encodedByte::UInt8 = 0
+
+    while(true)
+        network.Receive(encodedByte)
+        value += (encodedByte & 127) * multiplier
+        if multiplier > 128*128*128 throw(ErrorException("Malformed Remaining Length")) end
+        multiplier *= 128
+        if (encodedByte & 128) == 0 break end
     end
-    return idx
+
+    return value
 end

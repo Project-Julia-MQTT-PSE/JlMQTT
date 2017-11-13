@@ -83,7 +83,7 @@ mutable struct MqttMsgConnect <: MqttPacket
         flags |= (willFlag) ? (1 << WILL_FLAG_OFFSET) : flags
         flags |= (cleanSession) ? (1 << CLEAN_SESSION_FLAG_OFFSET) : flags
         this.flags = flags
-        
+
         return this
     end # function
 end # struct
@@ -238,6 +238,20 @@ function Serialize(msgConnect::MqttMsgConnect)
     end
 
     return msgPacket
+end
+
+function addPacketField(dest::Array{UInt8, 1}, src::Array{UInt8, 1}, idx::Int)
+    # MSB
+    dest[idx] = (length(src) >> 8) & 0x00FF
+    idx += 1
+    # LSB
+    dest[idx] = length(src) & 0x00FF
+    idx += 1
+    for char in src
+      dest[idx] = char
+      idx += 1
+    end
+    return idx
 end
 
 """
