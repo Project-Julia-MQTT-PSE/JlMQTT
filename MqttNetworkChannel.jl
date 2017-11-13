@@ -18,12 +18,12 @@ function Close(network::MqttNetworkChannel)
     close(network.socket)
 end
 
-function Send(network::MqttNetworkChannel, buffer::Array{UInt8, 1})
+function Send(network::MqttNetworkChannel, buffer::Vector{UInt8})
     if !isopen(network) throw(ErrorException("Socket error")) end
-    write(network.socket, "test")
+    write(network.socket, buffer)
 end
 
-function Receive(network::MqttNetworkChannel, buffer::Array{UInt8, 1})
+function Receive(network::MqttNetworkChannel, buffer::Vector{UInt8})
     if !isopen(network) throw(ErrorException("Socket error")) end
     buffer = read(network.socket, buffer.length)
     return length(buffer)

@@ -1,11 +1,39 @@
 # MQTT Client
 
-include("MqttMessages/Definitions.jl")
-include("MqttMessages/MqttMsgConnect.jl")
+include("MqttNetworkChannel.jl")
+include("Messages/Definitions.jl")
+include("Messages/MqttMsgConnect.jl")
+
+
+mutable struct MqttSession
+    clientId::String
+    inFlightMessages::Dict
+end
 
 mutable struct MqttClient
+    broker::MqttNetworkChannel
+    isRunning::Bool #Thread status
+    keepAlivePeriod::Int
+    lastCommTime::Int #Last communication time
+    session::MqttSession
 
+    #=
+    next_packetid::UInt
+    command_timeout_ms::UInt
+    buf_size::Int
+    readbuf_size::Int
+    buf::Vector{Char}
+    readbuf::Vector{Char}
+    keepAliveInterval::UInt
+    ping_outstanding::Bool
+    isconnected::Bool
+    messageHandlers::Dict
+    defaultMessageHandler::Any
+    ipstack::Network
+    ping_timer::Timer
+    =#
 end
+
 
 function Connect(clientId::String, username::String, password::String;
     will::WillOptions = WillOptions(false, AT_MOST_ONCE, String("aWillTopic"), String("aWillMessage")),
