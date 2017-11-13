@@ -49,10 +49,10 @@ end
 function Deserialize(msgConnack::MqttMsgConnack, network::MqttNetworkChannel)
 
     remainingLength::Int = 0
-    buffer::Array{UInt8,1}
+    buffer::Vector{UInt8}
 
     remainingLength = decodeRemainingLength(network)
-    buffer = Array{UInt8, 1}(remainingLength)
+    buffer = Vector{UInt8}(remainingLength)
     numberOfBytes = Receive(network, buffer)
     msgConnack.sessionPresent = (buffer[1] & 0x00) != 0x00
     msgConnack.returnCode = buffer[2]

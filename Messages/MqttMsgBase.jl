@@ -101,10 +101,10 @@ end
 function decodeRemainingLength(network)
     multiplier::Int = 1
     value::Int = 0
-    encodedByte::UInt8 = 0
+    encodedByte::Vector{UInt8}(1)
 
     while(true)
-        network.Receive(encodedByte)
+        numerOfBytes = Receive(network, encodedByte)
         value += (encodedByte & 127) * multiplier
         if multiplier > 128*128*128 throw(ErrorException("Malformed Remaining Length")) end
         multiplier *= 128
