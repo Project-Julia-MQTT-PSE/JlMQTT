@@ -1,5 +1,4 @@
 
-include("Definitions.jl")
 include("MqttMsgBase.jl")
 
 mutable struct MqttMsgDisconnect <: MqttPacket

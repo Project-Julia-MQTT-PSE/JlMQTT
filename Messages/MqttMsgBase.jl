@@ -10,7 +10,8 @@ mutable struct MqttMsgBase
     msgId::Int
 
     # default constructor
-    MqttMsgBase() = new(fixedHeader, retain, dup, qos, msgId)
+    MqttMsgBase() = new(0, false, false, AT_MOST_ONCE, 0)
+
     # constructor
     function MqttMsgBase(msgType::MsgType;
             retain = false,
@@ -104,7 +105,7 @@ function decodeRemainingLength(network)
     encodedByte::Vector{UInt8}(1)
 
     while(true)
-        numerOfBytes = Receive(network, encodedByte)
+        numerOfBytes = Read(network, encodedByte)
         value += (encodedByte & 127) * multiplier
         if multiplier > 128*128*128 throw(ErrorException("Malformed Remaining Length")) end
         multiplier *= 128

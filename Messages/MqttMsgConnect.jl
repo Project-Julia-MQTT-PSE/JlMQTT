@@ -1,10 +1,10 @@
 
-include("Definitions.jl")
 include("MqttMsgBase.jl")
 
 # CONSTANTS
 const KEEP_ALIVE_PERIOD_DEFAULT = 60
 const MAX_KEEP_ALIVE = 65535
+# max length for client id (removed in 3.1.1)
 const MAX_CLIENT_ID_LENGTH = 23
 const MIN_CLIENT_ID_LENGTH = 1
 const MAX_WILL_TOPIC_LENGTH = 65535
@@ -30,6 +30,8 @@ mutable struct WillOptions
     willQosLevel::QosLevel
     willTopic::String
     willMessage::String
+
+    WillOptions() = new(false, AT_MOST_ONCE, String(""), String(""))
 end
 
 mutable struct MqttMsgConnect <: MqttPacket
@@ -41,12 +43,12 @@ mutable struct MqttMsgConnect <: MqttPacket
     willFlag::Bool
     cleanSession::Bool
     keepAlivePeriod::Int
-    protocolName::String
-    protocolLevel::UInt8
+    #protocolName::String
+    protocolLevel::MqttVersion
     flags::UInt8
 
     # default constructor
-    #MqttMsgConnect() = new(msgBase, clientId, username, password, will, willFlag, cleanSession, keepAlivePeriod, protocolName, protocolLevel, flags)
+    MqttMsgConnect() = new(MqttMsgBase(CONNECT_TYPE), String(""), String(""), String(""), WillOptions(), false, true, KEEP_ALIVE_PERIOD_DEFAULT, PROTOCOL_VERSION_V3_1_1, 0)
 
     # constructor
     function MqttMsgConnect(clientId::String;
@@ -56,12 +58,11 @@ mutable struct MqttMsgConnect <: MqttPacket
         willFlag = false,
         cleanSession = false,
         keepAlivePeriod = KEEP_ALIVE_PERIOD_DEFAULT,
-        protocolName = "MQTT",
-        protocolLevel = 4,
+        #protocolName = PROTOCOL_NAME_V3_1_1,
+        protocolLevel = PROTOCOL_VERSION_V3_1_1,
         flags = 0)
 
         this = new()
-        this.msgBase = MqttMsgBase(CONNECT_TYPE)
         this.clientId = clientId
         this.username = username
         this.password = password
@@ -71,36 +72,35 @@ mutable struct MqttMsgConnect <: MqttPacket
         this.keepAlivePeriod = keepAlivePeriod
         this.protocolName = protocolName
         this.protocolLevel = protocolLevel
+        this.flags = flags
 
         # Set connect flags
-        flags |= (length(username) > 0) ? (1 << USERNAME_FLAG_OFFSET) : flags
-        flags |= (length(password) > 0) ? (1 << PASSWORD_FLAG_OFFSET) : flags
-        flags |= (will.willRetain) ? (1 << WILL_RETAIN_FLAG_OFFSET) : flags
+        this.flags |= (length(username) > 0) ? (1 << USERNAME_FLAG_OFFSET) : 0
+        this.flags |= (length(password) > 0) ? (1 << PASSWORD_FLAG_OFFSET) : 0
+        this.flags |= (will.willRetain) ? (1 << WILL_RETAIN_FLAG_OFFSET) : 0
         # only if will flag is set, we have to use will QoS level (otherwise it MUST be 0)
         if (willFlag)
-          flags |= (UInt8(will.willQosLevel) << WILL_QOS_FLAG_OFFSET)
+          this.flags |= (UInt8(will.willQosLevel) << WILL_QOS_FLAG_OFFSET)
         end
-        flags |= (willFlag) ? (1 << WILL_FLAG_OFFSET) : flags
-        flags |= (cleanSession) ? (1 << CLEAN_SESSION_FLAG_OFFSET) : flags
-        this.flags = flags
+        this.flags |= (willFlag) ? (1 << WILL_FLAG_OFFSET) : 0
+        this.flags |= (cleanSession) ? (1 << CLEAN_SESSION_FLAG_OFFSET) : 0
 
         return this
     end # function
 end # struct
-# outer constructor - override default
-#MqttMsgConnect() = MqttMsgConnect(MqttMsgBase(CONNECT_TYPE), String("clientId123"), String("User1"), String("Password1"), WillOptions(true, AT_MOST_ONCE, "User1WillTopic", "User1WillMessage"), true, true, KEEP_ALIVE_PERIOD_DEFAULT, String("MQTT"), 4, 0)
 
 # Serialize MQTT message connect
 # returns a byte array
+# TODO: change byte arrays to vectors
 function Serialize(msgConnect::MqttMsgConnect)
 
     fixedHeaderSize::Int = 0
     varHeaderSize::Int = 0
     payloadSize::Int = 0
     remainingLength::Int = 0
-    index::Int = 1
 
     msgPacket = 0
+    index::Int = 1
 
     willTopicUtf8 = 0
     willMessageUtf8 = 0
@@ -161,7 +161,8 @@ function Serialize(msgConnect::MqttMsgConnect)
         passwordUtf8 = convert(Array{UInt8}, msgConnect.password)
     end
 
-    protocolNameUtf8 = convert(Array{UInt8}, msgConnect.protocolName)
+    protocolName = (msgConnect.protocolVersion == PROTOCOL_VERSION_V3_1_1) ? PROTOCOL_NAME_V3_1_1 : PROTOCOL_NAME_V3_1
+    protocolNameUtf8 = convert(Array{UInt8}, protocolName)
 
     # protocolName size + length field size
     varHeaderSize += length(msgConnect.protocolName) + 2
@@ -205,8 +206,8 @@ function Serialize(msgConnect::MqttMsgConnect)
 
     #Move protocol name to packageBuffer
     index = addPacketField(msgPacket, protocolNameUtf8, index)
-    # Copy protocol version MQTT 3.1.1 == 4 to package
-    msgPacket[index] = msgConnect.protocolLevel
+    # Copy protocol version
+    msgPacket[index] = UInt8(msgConnect.protocolLevel)
     index += 1
     # Set connect flags
     msgPacket[index] = msgConnect.flags
