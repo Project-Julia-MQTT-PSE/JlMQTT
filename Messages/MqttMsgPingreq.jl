@@ -11,10 +11,10 @@ end # struct
 
 # Serialize MQTT message ping request
 # returns a byte array
-function Serialize(msgPingreq::MqttMsgPingreq)
+function Serialize(msg::MqttMsgPingreq)
 
     msgPacket = Array{UInt8, 1}(2)
-    msgPacket[1] = msgPingreq.msgBase.fixedHeader
+    msgPacket[1] = msg.msgBase.fixedHeader
     msgPacket[2] = 0 #reaminingLength field
 
     return msgPacket

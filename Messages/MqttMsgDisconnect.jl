@@ -11,10 +11,10 @@ end # struct
 
 # Serialize MQTT message disconnect
 # returns a byte array
-function Serialize(msgDisconnect::MqttMsgDisconnect)
+function Serialize(msg::MqttMsgDisconnect)
 
     msgPacket = Array{UInt8, 1}(2)
-    msgPacket[1] = msgDisconnect.msgBase.fixedHeader
+    msgPacket[1] = msg.msgBase.fixedHeader
     msgPacket[2] = 0 #reaminingLength field
 
     return msgPacket

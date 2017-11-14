@@ -2,9 +2,6 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
-# CONSTANTS
-
-
 mutable struct MqttMsgConnack <: MqttPacket
     msgBase::MqttMsgBase
     returnCode::ConnackCode
@@ -38,8 +35,7 @@ end
 =#
 
 # Deserialize MQTT message connack
-# returns a byte array
-function Deserialize(msgConnack::MqttMsgConnack, network::MqttNetworkChannel)
+function Deserialize(msg::MqttMsgConnack, network::MqttNetworkChannel)
 
     remainingLength::Int = 0
     buffer::Vector{UInt8}
@@ -47,8 +43,8 @@ function Deserialize(msgConnack::MqttMsgConnack, network::MqttNetworkChannel)
     remainingLength = decodeRemainingLength(network)
     buffer = Vector{UInt8}(remainingLength)
     numberOfBytes = Receive(network, buffer)
-    msgConnack.sessionPresent = (buffer.at(1) & 0x00) != 0x00
-    msgConnack.returnCode = buffer.at(2)
+    msg.sessionPresent = (buffer.at(1) & 0x00) != 0x00
+    msg.returnCode = buffer.at(2)
 
-    return msgConnack
+    return msg
 end
