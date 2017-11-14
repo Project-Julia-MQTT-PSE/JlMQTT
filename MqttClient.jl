@@ -1,7 +1,6 @@
 # MQTT Client
 
 include("MqttNetworkChannel.jl")
-include("Messages/Definitions.jl")
 include("Messages/MqttMsgConnect.jl")
 
 
@@ -11,72 +10,95 @@ mutable struct MqttSession
 end
 
 mutable struct MqttClient
+    clientId::String
+    isConnected::Bool
+    cleanSession::Bool
+
+    will::WillOptions
+    willFlag::Bool
+
     broker::MqttNetworkChannel
-    isRunning::Bool #Thread status
+    protocolVersion::MqttVersion
+    session::MqttSession
     keepAlivePeriod::Int
     lastCommTime::Int #Last communication time
-    session::MqttSession
+    isRunning::Bool #Thread status
 
-    #=
-    next_packetid::UInt
-    command_timeout_ms::UInt
-    buf_size::Int
-    readbuf_size::Int
-    buf::Vector{Char}
-    readbuf::Vector{Char}
-    keepAliveInterval::UInt
-    ping_outstanding::Bool
-    isconnected::Bool
-    messageHandlers::Dict
-    defaultMessageHandler::Any
-    ipstack::Network
-    ping_timer::Timer
-    =#
+    #TODO: msg queues & event handlers
+
 end
+MqttClient() = MqttClient(clientId::String, isConnected::Bool, cleanSession::Bool, WillOptions(), false, MqttNetworkChannel(), PROTOCOL_VERSION_V3_1_1, MqttSession(String(""), Dict()), 60, 0, false )
 
 
-function Connect(clientId::String, username::String, password::String;
+function MqttConnect(client::MqttClient, clientId::String, username::String, password::String;
     will::WillOptions = WillOptions(false, AT_MOST_ONCE, String("aWillTopic"), String("aWillMessage")),
-    willFlag::Bool = true,
-    cleanSession::Bool = true,
-    keepAlivePeriod::Int = KEEP_ALIVE_PERIOD_DEFAULT)
+    willFlag::Bool = false)
 
-    msgConnect = MqttMsgConnect(String("User1ClientId"))
-    print(msgConnect)
+    msgConnect = MqttMsgConnect(client, clientId, username, password, will, willFlag, client.cleanSession, client.keepAlivePeriod, client.protocolVersion, 0)
 
-"""
-    # TODO: connect to broker
     try
-        broker = connect("ipadress", 2001)
-        broker = connect(2001)
-        @async while true
-           write(STDOUT,readline(broker))
-        end
-        getalladdrinfo("localhost")
-        println(broker,"Hello World from the Echo Server")
-        close(broker)
-
+        # TODO: connect to broker
     catch err
         showerror(STDOUT, err, backtrace()); println()
     end
-"""
+
+    client.lastCommTime = 0
+    client.isRunning = true
+
+    # TODO: start receiving thread
+
+    connack::MqttMsgConnack = SendReceive(msgConnect)
+    # if connection accepted, start keep alive timer and
+    if connack.returnCode == CONN_ACCEPTED
+
+        # set all client properties
+        client.clientId = clientId
+        client.cleanSession = cleanSession
+        client.willFlag = willFlag
+        client.willOptions = willOptions
+
+        client.keepAlivePeriod = keepAlivePeriod * 1000 # convert in ms
+
+        # restore previous session
+        # this.RestoreSession();
+
+        #keep alive period equals zero means turning off keep alive mechanism
+        if (this.keepAlivePeriod != 0)
+            # start thread for sending keep alive message to the broker
+            # Fx.StartThread(this.KeepAliveThread);
+        end
+
+        # start thread for raising received message event from broker
+        # Fx.StartThread(this.DispatchEventThread);
+
+        # start thread for handling inflight messages queue to broker asynchronously (publish and acknowledge)
+        # Fx.StartThread(this.ProcessInflightThread);
+
+        client.isConnected = true;
+    end
+
+    return connack.returnCode;
+
 end #function
 
-function Disconnect()
+function SendReceive(msgConnect)
+    connack::MqttMsgConnack = MqttMsgConnack()
+
+    return connack
+end
+
+function MqttDisconnect()
 
 end
 
-function Subscribe()
+function MqttSubscribe()
 
 end
 
-function Unsubscribe()
+function MqttUnsubscribe()
 
 end
 
-function Publish()
+function MqttPublish()
 
 end
-
-
-Connect("client-id-1", "user1", "password1")

@@ -8,4 +8,6 @@ module JlMqtt
     include("Messages/MqttMsgConnack.jl")
     include("Messages/MqttMsgDisconnect.jl")
 
+    export MqttClient
+
 end
