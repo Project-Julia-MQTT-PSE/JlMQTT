@@ -1,49 +1,76 @@
-module JlMqtt
+include("Definitions.jl")
+include("MqttMsgBase.jl")
 
 const MAX_TOPIC_LENGTH = 65535;
 const MIN_TOPIC_LENGTH = 1;
 const MESSAGE_ID_SIZE = 2;
+const QOS_LEVEL_MASK = 0x06
 
 #=Represent a Subscribe Package which can be send to the Broker
 fixedHeader = the FixedHeader value
 topic = topic to which the message will be published
 messageId = OPTIONAL, only required if QoS level is set to level 1 or 2, to identify a specific message
 =#
-struct MqttMsgSubscribe
-  msgPackage::Array{UInt8,1}
-  function MqttMsgSubscribe(fixedHeader::UInt8, topic::String, message::String; messageId::UInt8 = 0x00)
-    fixedHeaderSize::Int = 0
-    varHeaderSize::Int = 0
-    payloadSize::Int = 0
-    remainingLength::Int = 0
-    index::Int = 1
 
-    #Check that Topic contain no Wildcards
-    in('#', topic) || in('+', topic) ? throw(ErrorException("Topic can't contain a Wildcard")) : 0x00
-    #Check Topic Length
-    (endof(topic) < MIN_TOPIC_LENGTH || endof(topic) > MAX_TOPIC_LENGTH) ? throw(ErrorException("Topic length exceeded")) : 0x00
-    #Check if QoS Level is wrong
-    if (fixedHeader & 0x06) == 0x06
-      throw(ErrorException("QoS is set to a wrong value"))
-    end
+mutable struct MqttMsgSubscribe <: MqttPacket
+  msgBase::MqttMsgBase
+  topic::String
+  message::String
+  messageId::UInt8
+	
+  function MqttMsgSubscribe(
+  topic::String, 
+  message::String; 
+  messageId::UInt8 = 0x00
+  _retain = false,
+  _dup = false,
+  _qos = UInt8(AT_MOST_ONCE))
 
-    topicUtf8 = convert(Array{UInt8}, topic)
+  this = new()
+  this.msgBase = MqttMsgBase(SUBSCRIBE_TYPE, retain=_retain, dup=_dup, qos=_qos, msgId=messageId)
+  this.message = message
+  this.topic = topic
+  this.messageId = messageId
 
-    #Topic Length 2 two for MSB & LSB
-    varHeaderSize += endof(topicUtf8) + 2
+    return this
+  end
 
-    #If Qos level is 1 or 2 add the Message ID LSB & MSB
-    if ((fixedHeader & 0x06) == 0x02 || (fixedHeader & 0x06) == 0x04)
-      varHeaderSize += MESSAGE_ID_SIZE
-    end
+end
+		
+function Serialize(msgSubscribe::MqttMsgSubscribe)
+  fixedHeaderSize::Int = 0
+  varHeaderSize::Int = 0
+  payloadSize::Int = 0
+  remainingLength::Int = 0
+  index::Int = 1
 
-    if message != ""
-      payloadSize += endof(message)
-    end
+  msgPackage::Array{UInt8,1}		
 
+  #Check that Topic contain no Wildcards
+  in('#', topic) || in('+', topic) ? throw(ErrorException("Topic can't contain a Wildcard")) : 0x00
+  #Check Topic Length
+  (endof(topic) < MIN_TOPIC_LENGTH || endof(topic) > MAX_TOPIC_LENGTH) ? throw(ErrorException("Topic length exceeded")) : 0x00
+  #Check if QoS Level is wrong
+  if (fixedHeader & QOS_LEVEL_MASK) == QOS_LEVEL_MASK
+    throw(ErrorException("QoS is set to a wrong value"))
+  end
 
-	#subscribe 192 
- 		topicIdx::Int = 0;
+  topicUtf8 = convert(Array{UInt8}, topic)
+
+  #Topic Length 2 two for MSB & LSB
+  varHeaderSize += endof(topicUtf8) + 2
+
+  #If Qos level is 1 or 2 add the Message ID LSB & MSB
+  if ((fixedHeader & QOS_LEVEL_MASK) == EXACTLY_ONCE || (fixedHeader & QOS_LEVEL_MASK) == 0x04)
+    varHeaderSize += MESSAGE_ID_SIZE
+  end
+
+  if message != ""
+    payloadSize += endof(message)
+  end
+
+            #TODO: from subscribe M2MQTT line 192 : recheck this  
+ 	    topicIdx::Int = 0;
             #byte[][] topicsUtf8 = new byte[this.topics.Length][];
              topicsUtf8::Array{UInt8,2} (count(topic))
             for (topicIdx = 0; topicIdx < (count(topic); topicIdx+=1)
