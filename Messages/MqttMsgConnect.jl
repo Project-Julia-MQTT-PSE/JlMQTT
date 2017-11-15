@@ -52,7 +52,7 @@ mutable struct MqttMsgConnect <: MqttPacket
     #MqttMsgConnect() = new(MqttMsgBase(CONNECT_TYPE), String(""), String(""), String(""), WillOptions(), false, true, KEEP_ALIVE_PERIOD_DEFAULT, PROTOCOL_VERSION_V3_1_1, 0)
 end
     # constructor
-    function createMqttMsgConnect(clientId::String;
+    function MqttMsgConnect(clientId::String;
         username = String(""),
         password = String(""),
         will = WillOptions(false, AT_MOST_ONCE, String(""), String("")),
@@ -63,21 +63,21 @@ end
         protocolLevel = PROTOCOL_VERSION_V3_1_1,
         flags = 0)
 
-        m = MqttMsgConnect(MqttMsgBase(CONNECT_TYPE), clientId, username, password, will, willFlag, cleanSession, keepAlivePeriod, protocolLevel, flags)
-        
+        this = MqttMsgConnect(MqttMsgBase(CONNECT_TYPE), clientId, username, password, will, willFlag, cleanSession, keepAlivePeriod, protocolLevel, flags)
+
 
         # Set connect flags
-        m.flags |= (length(username) > 0) ? (1 << USERNAME_FLAG_OFFSET) : 0
-        m.flags |= (length(password) > 0) ? (1 << PASSWORD_FLAG_OFFSET) : 0
-        m.flags |= (will.willRetain) ? (1 << WILL_RETAIN_FLAG_OFFSET) : 0
+        this.flags |= (length(username) > 0) ? (1 << USERNAME_FLAG_OFFSET) : 0
+        this.flags |= (length(password) > 0) ? (1 << PASSWORD_FLAG_OFFSET) : 0
+        this.flags |= (will.willRetain) ? (1 << WILL_RETAIN_FLAG_OFFSET) : 0
         # only if will flag is set, we have to use will QoS level (otherwise it MUST be 0)
         if (willFlag)
-          m.flags |= (UInt8(will.willQosLevel) << WILL_QOS_FLAG_OFFSET)
+          this.flags |= (UInt8(will.willQosLevel) << WILL_QOS_FLAG_OFFSET)
         end
-        m.flags |= (willFlag) ? (1 << WILL_FLAG_OFFSET) : 0
-        m.flags |= (cleanSession) ? (1 << CLEAN_SESSION_FLAG_OFFSET) : 0
+        this.flags |= (willFlag) ? (1 << WILL_FLAG_OFFSET) : 0
+        this.flags |= (cleanSession) ? (1 << CLEAN_SESSION_FLAG_OFFSET) : 0
 
-        return m
+        return this
     end # function
 #end # struct
 

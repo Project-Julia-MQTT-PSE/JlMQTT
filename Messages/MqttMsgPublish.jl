@@ -18,13 +18,13 @@ messageId = OPTIONAL, only required if QoS level is set to level 1 or 2, to iden
 
 =#
 
-mutable struct MqqtMsgPublish <: MqttPacket
+mutable struct MqttMsgPublish <: MqttPacket
   msgBase::MqttMsgBase
   topic::String
   message::String
   messageId::UInt8
 
-  function MqqtMsgPublish(topic::String,
+  function MqttMsgPublish(topic::String,
     message::String;
     messageId::UInt8 = 0x00,
     _retain = false,
@@ -36,11 +36,13 @@ mutable struct MqqtMsgPublish <: MqttPacket
     this.message = message
     this.topic = topic
     this.messageId = messageId
+
+    return this
   end
 
 end
 
-function Serialize(msgPublish::MqqtMsgPublish)
+function Serialize(msgPublish::MqttMsgPublish)
   fixedHeaderSize::Int = 0
   varHeaderSize::Int = 0
   payloadSize::Int = 0
@@ -133,8 +135,9 @@ function Serialize(msgPublish::MqqtMsgPublish)
       return msgPackage
 end
 
-#m::MqqtMsgPublish = MqqtMsgPublish("asecd", "test")
-#println(m)
-#b = Serialize(m)
-#println(b)
-
+"""
+m = MqttMsgPublish("asecd", "test")
+println(m)
+b = Serialize(m)
+println(b)
+"""
