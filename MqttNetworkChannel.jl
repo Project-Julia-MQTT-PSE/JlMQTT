@@ -8,10 +8,13 @@ mutable struct MqttNetworkChannel
     remoteAddr::String
     remotePort::Int
 end
-MqttNetworkChannel() = MqttNetworkChannel(TCPSocket(), String("test.mosquitto.org"), 1883)
+MqttNetworkChannel() = MqttNetworkChannel(TCPSocket(), "test.mosquitto.org", 1883)
 
 function Open(network::MqttNetworkChannel)
+    println("open channel")
     network.socket = connect(network.remoteAddr, network.remotePort)
+    println(network.socket)
+    println("test")
 end
 
 function Close(network::MqttNetworkChannel)
@@ -25,6 +28,6 @@ end
 
 function Read(network::MqttNetworkChannel, buffer::Vector{UInt8})
     if !isopen(network) throw(ErrorException("Socket error")) end
-    buffer = read(network.socket, buffer.length)
+    buffer = read(network.socket, buffer)
     return length(buffer)
 end

@@ -2,6 +2,7 @@
 
 include("MqttNetworkChannel.jl")
 include("Messages/MqttMsgConnect.jl")
+include("Messages/MqttMsgConnack.jl")
 
 
 mutable struct MqttSession
@@ -27,17 +28,26 @@ mutable struct MqttClient
     #TODO: msg queues & event handlers
 
 end
-MqttClient() = MqttClient(clientId::String, isConnected::Bool, cleanSession::Bool, WillOptions(), false, MqttNetworkChannel(), PROTOCOL_VERSION_V3_1_1, MqttSession(String(""), Dict()), 60, 0, false )
+MqttClient() = MqttClient("clientid", false, false, WillOptions(), false, MqttNetworkChannel(), PROTOCOL_VERSION_V3_1_1, MqttSession(String(""), Dict()), 60, 0, false )
 
 
-function MqttConnect(client::MqttClient, clientId::String, username::String, password::String;
-    will::WillOptions = WillOptions(false, AT_MOST_ONCE, String("aWillTopic"), String("aWillMessage")),
-    willFlag::Bool = false)
+function MqttConnect(client::MqttClient, clientId::String;
+    username::String = "",
+    password::String = "",
+    will::WillOptions = WillOptions(),
+    willFlag::Bool = false,
+    cleanSession::Bool = false)
 
-    msgConnect = MqttMsgConnect(client, clientId, username, password, will, willFlag, client.cleanSession, client.keepAlivePeriod, client.protocolVersion, 0)
+    msgConnect = createMqttMsgConnect(clientId)
 
     try
         # TODO: connect to broker
+        client.broker = MqttNetworkChannel()
+
+        Open(client.broker)
+        println("open conn")
+
+
     catch err
         showerror(STDOUT, err, backtrace()); println()
     end
@@ -55,15 +65,15 @@ function MqttConnect(client::MqttClient, clientId::String, username::String, pas
         client.clientId = clientId
         client.cleanSession = cleanSession
         client.willFlag = willFlag
-        client.willOptions = willOptions
+        client.will = will
 
-        client.keepAlivePeriod = keepAlivePeriod * 1000 # convert in ms
+        client.keepAlivePeriod = KEEP_ALIVE_PERIOD_DEFAULT * 1000 # convert in ms
 
         # restore previous session
         # this.RestoreSession();
 
         #keep alive period equals zero means turning off keep alive mechanism
-        if (this.keepAlivePeriod != 0)
+        if (client.keepAlivePeriod != 0)
             # start thread for sending keep alive message to the broker
             # Fx.StartThread(this.KeepAliveThread);
         end
@@ -75,6 +85,7 @@ function MqttConnect(client::MqttClient, clientId::String, username::String, pas
         # Fx.StartThread(this.ProcessInflightThread);
 
         client.isConnected = true;
+        println(client)
     end
 
     return connack.returnCode;
@@ -102,3 +113,5 @@ end
 function MqttPublish()
 
 end
+m=MqttClient()
+MqttConnect(m, "clientid")
