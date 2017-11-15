@@ -4,6 +4,10 @@ include("MqttNetworkChannel.jl")
 include("Messages/MqttMsgConnect.jl")
 include("Messages/MqttMsgConnack.jl")
 
+const RECEIVE_THREAD_NAME = "ReceiveThread";
+const RECEIVE_EVENT_THREAD_NAME = "DispatchEventThread";
+const PROCESS_INFLIGHT_THREAD_NAME = "ProcessInflightThread";
+const KEEP_ALIVE_THREAD = "KeepAliveThread";
 
 mutable struct MqttSession
     clientId::String
@@ -25,6 +29,13 @@ mutable struct MqttClient
     lastCommTime::Int #Last communication time
     isRunning::Bool #Thread status
 
+    # inflight messages queue
+    inflightQueue
+    # internal queue for received messages about inflight messages
+    internalQueue
+    # internal queue for dispatching events
+    eventQueue
+
     #TODO: msg queues & event handlers
 
 end
@@ -38,7 +49,7 @@ function MqttConnect(client::MqttClient, clientId::String;
     willFlag::Bool = false,
     cleanSession::Bool = false)
 
-    msgConnect = createMqttMsgConnect(clientId)
+    msgConnect = MqttMsgConnect(clientId)
 
     try
         # TODO: connect to broker
@@ -56,6 +67,9 @@ function MqttConnect(client::MqttClient, clientId::String;
     client.isRunning = true
 
     # TODO: start receiving thread
+    receiveTask = Task(ReceiveThread)
+
+
 
     connack::MqttMsgConnack = SendReceive(msgConnect)
     # if connection accepted, start keep alive timer and
@@ -92,10 +106,16 @@ function MqttConnect(client::MqttClient, clientId::String;
 
 end #function
 
-function SendReceive(msgConnect)
+function SendReceive(msgConnect::MqttMsgConnect, broker::TCPSocket)
     connack::MqttMsgConnack = MqttMsgConnack()
 
+
+
     return connack
+end
+
+function RestoreSession()
+
 end
 
 function MqttDisconnect()
@@ -113,5 +133,21 @@ end
 function MqttPublish()
 
 end
+
+# threads
+function KeepAliveThread()
+end
+
+function ReceiveThread()
+end
+
+function DispatchEventThread()
+end
+
+function ProcessInflightThread()
+end
+
+"""
 m=MqttClient()
 MqttConnect(m, "clientid")
+"""
