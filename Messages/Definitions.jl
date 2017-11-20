@@ -39,7 +39,7 @@ const PINGRESP_FLAG_BITS = 0x00
 const DISCONNECT_FLAG_BITS = 0x00
 
 # mask, offset and size for fixed header fields
-#const MSG_TYPE_MASK = 0xF0
+const MSG_TYPE_MASK = 0xF0
 const MSG_TYPE_OFFSET = 0x04
 #const MSG_TYPE_SIZE = 0x04
 #const MSG_FLAG_BITS_MASK = 0x0F
@@ -54,3 +54,7 @@ const QOS_LEVEL_OFFSET = 0x01
 #const RETAIN_FLAG_MASK = 0x01
 #const RETAIN_FLAG_OFFSET = 0x00
 #const RETAIN_FLAG_SIZE = 0x01
+
+#Settings
+const MQTT_DEFAULT_TIMEOUT = 30000
+
