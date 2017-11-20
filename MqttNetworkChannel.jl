@@ -1,8 +1,3 @@
-
-"""
-TODO: make this work
-"""
-
 mutable struct MqttNetworkChannel
     socket::TCPSocket
     remoteAddr::String
@@ -10,11 +5,8 @@ mutable struct MqttNetworkChannel
 end
 MqttNetworkChannel() = MqttNetworkChannel(TCPSocket(), "test.mosquitto.org", 1883)
 
-function Open(network::MqttNetworkChannel)
-    println("open channel")
+function Connect(network::MqttNetworkChannel)
     network.socket = connect(network.remoteAddr, network.remotePort)
-    println(network.socket)
-    println("test")
 end
 
 function Close(network::MqttNetworkChannel)
@@ -22,12 +14,14 @@ function Close(network::MqttNetworkChannel)
 end
 
 function Write(network::MqttNetworkChannel, buffer::Vector{UInt8})
-    if !isopen(network) throw(ErrorException("Socket error")) end
-    # write(network.socket, buffer)
+    #if !isopen(network) throw(ErrorException("Socket error")) end
+println("Writting")
+     write(network.socket, buffer)
 end
 
-function Read(network::MqttNetworkChannel, buffer::Vector{UInt8})
-    if !isopen(network) throw(ErrorException("Socket error")) end
-    # read(network.socket, buffer)
+function Read(network::MqttNetworkChannel, buffer::Array{UInt8, 1})
+    #if !isopen(network) throw(ErrorException("Socket error")) end
+    println("Reading")
+    readbytes!(network.socket, buffer, length(buffer))
     return length(buffer)
 end
