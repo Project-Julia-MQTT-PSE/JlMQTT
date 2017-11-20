@@ -23,11 +23,11 @@ end
 
 function Write(network::MqttNetworkChannel, buffer::Vector{UInt8})
     if !isopen(network) throw(ErrorException("Socket error")) end
-    write(network.socket, buffer)
+    # write(network.socket, buffer)
 end
 
 function Read(network::MqttNetworkChannel, buffer::Vector{UInt8})
     if !isopen(network) throw(ErrorException("Socket error")) end
-    buffer = read(network.socket, buffer)
+    # read(network.socket, buffer)
     return length(buffer)
 end

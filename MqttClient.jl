@@ -36,8 +36,12 @@ mutable struct MqttClient
     # internal queue for dispatching events
     eventQueue
 
-    #TODO: msg queues & event handlers
-
+    # event handlers
+    MqttMsgPublishReceiveEventHandler
+    MqttMsgPublishedEventHandler
+    MqttMsgSubscribedEventHandler
+    MqttMsgUnsubscribedEventHandler
+    ConnectionClosedEventHandler
 end
 MqttClient() = MqttClient("clientid", false, false, WillOptions(), false, MqttNetworkChannel(), PROTOCOL_VERSION_V3_1_1, MqttSession(String(""), Dict()), 60, 0, false )
 
@@ -68,6 +72,7 @@ function MqttConnect(client::MqttClient, clientId::String;
 
     # TODO: start receiving thread
     receiveTask = Task(ReceiveThread)
+    schedule(receiveTask)
 
 
 
