@@ -153,11 +153,12 @@ function Serialize(msgConnect::MqttMsgConnect)
         passwordUtf8 = convert(Array{UInt8}, msgConnect.password)
     end
 
-    protocolName = (msgConnect.protocolVersion == PROTOCOL_VERSION_V3_1_1) ? PROTOCOL_NAME_V3_1_1 : PROTOCOL_NAME_V3_1
+    protocolName = (msgConnect.protocolLevel == PROTOCOL_VERSION_V3_1_1) ? PROTOCOL_NAME_V3_1_1 : PROTOCOL_NAME_V3_1
     protocolNameUtf8 = convert(Array{UInt8}, protocolName)
 
     # protocolName size + length field size
-    varHeaderSize += length(msgConnect.protocolName) + 2
+    # ERROR FROM LENGTH, returns 1 instead of 4 =>>> varHeaderSize += length(Int(msgConnect.protocolLevel)) + 2
+    varHeaderSize += 6
     # protocol level field size
     varHeaderSize += 1
     # connect flags field size
@@ -175,7 +176,6 @@ function Serialize(msgConnect::MqttMsgConnect)
     payloadSize += (usernameUtf8 != 0) ? (length(usernameUtf8) + 2) : 0
     # password field size
     payloadSize += (passwordUtf8 != 0) ? (length(passwordUtf8) + 2) : 0
-
     remainingLength += (varHeaderSize + payloadSize)
 
     #building protocol package
@@ -192,10 +192,8 @@ function Serialize(msgConnect::MqttMsgConnect)
     msgPacket = Array{UInt8, 1}(fixedHeaderSize + varHeaderSize + payloadSize)
     msgPacket[index] = msgConnect.msgBase.fixedHeader
     index += 1
-
     #Encode remaining length part for fixed header
     index = encodeRemainingLength(remainingLength, msgPacket, index)
-
     #Move protocol name to packageBuffer
     index = addPacketField(msgPacket, protocolNameUtf8, index)
     # Copy protocol version
@@ -247,9 +245,8 @@ function addPacketField(dest::Array{UInt8, 1}, src::Array{UInt8, 1}, idx::Int)
     return idx
 end
 
-"""
-m = MqttMsgConnect(String("clientId123"))
-println(m)
-b = Serialize(m)
-println(b)
-"""
+
+#m = MqttMsgConnect(String("clientId123"))
+#println(m)
+#b = Serialize(m)
+#println(b)
