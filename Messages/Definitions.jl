@@ -10,6 +10,12 @@
 
 @enum MqttVersion PROTOCOL_VERSION_DEFAULT = 0 PROTOCOL_VERSION_V3_1 = 3 PROTOCOL_VERSION_V3_1_1 = 4
 
+# Flow og message
+@enum MqttMsgFlow ToPublish = 0x01 ToAcknowledge = 0x02
+
+#MQTT message state
+@enum MqttMsgState QueuedQos0 = 0x01 QueuedQos1 = 0x02 QueuedQos2 = 0x03 WaitForPuback = 0x04 WaitForPubrec = 0x05 WaitForPubrel = 0x06 WaitForPubcomp = 0x07 SendPubrec = 0x08 SendPubrel = 0x09 SendPubcomp = 0x10 SendPuback = 0x11 SendSubscribe = 0x12 SendUnsubscribe = 0x13 WaitForSuback = 0x14 WaitForUnsuback = 0x15
+
 # protocol name supported
 const PROTOCOL_NAME_V3_1 = "MQIsdp"
 const PROTOCOL_NAME_V3_1_1 = "MQTT" # [v.3.1.1]
@@ -47,6 +53,18 @@ const MSG_TYPE_OFFSET = 0x04
 #const MSG_FLAG_BITS_SIZE = 0x04
 #const DUP_FLAG_MASK = 0x08
 #const DUP_FLAG_OFFSET = 0x03
+#const DUP_FLAG_SIZE = 0x01
+#const QOS_LEVEL_MASK = 0x06
+const QOS_LEVEL_OFFSET = 0x01
+#const QOS_LEVEL_SIZE = 0x02
+#const RETAIN_FLAG_MASK = 0x01
+#const RETAIN_FLAG_OFFSET = 0x00
+#const RETAIN_FLAG_SIZE = 0x01
+
+#Settings
+const MQTT_DEFAULT_TIMEOUT = 30000
+const MESSAGE_ID_SIZE = 2
+
 #const DUP_FLAG_SIZE = 0x01
 #const QOS_LEVEL_MASK = 0x06
 const QOS_LEVEL_OFFSET = 0x01
