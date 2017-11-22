@@ -25,7 +25,7 @@ struct MqttMsgUnsubscribe
 end
 
     topicsUtf8::Array{byte, 2}
-    
+
     for t in topicsUtf8
 
       if endof(topicsUtf8) < MIN_TOPIC_LENGTH || endof(topicsUtf8) > MAX_TOPIC_LENGTH
@@ -33,6 +33,7 @@ end
         payloadSize += 2
         payloadSize += topicsUtf8[t]
       end
+    end
 
       remainingLength += varHeaderSize + payloadSize
 
@@ -75,6 +76,7 @@ end
         # Array.Copy(topicsUtf8[topicIdx], 0, buffer, index, topicsUtf8[topicIdx].Length);
 
         index += topicsUtf8[topicIdx].Length
+      end
 
 
       return buffer
