@@ -23,5 +23,6 @@ function Read(network::MqttNetworkChannel, buffer::Array{UInt8, 1})
     #if !isopen(network) throw(ErrorException("Socket error")) end
     println("Reading")
     readbytes!(network.socket, buffer, length(buffer))
+    println("Reading ended")
     return length(buffer)
 end
