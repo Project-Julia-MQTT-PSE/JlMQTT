@@ -1,16 +1,15 @@
 # MQTT Client
+using DataStructures
 include("Messages/Definitions.jl")
 include("MqttNetworkChannel.jl")
 include("Messages/MqttMsgConnect.jl")
 include("Messages/MqttMsgConnack.jl")
+include("Messages/MqttMsgPubcomp.jl")
+include("Messages/MqttMsgPublish.jl")
+include("Messages/MqttMsgContext.jl")
+include("Messages/MqttMsgSubscribe.jl")
+include("Messages/MqttMsgSuback.jl")
 
-
-const RECEIVE_THREAD_NAME = "ReceiveThread";
-const RECEIVE_EVENT_THREAD_NAME = "DispatchEventThread";
-const PROCESS_INFLIGHT_THREAD_NAME = "ProcessInflightThread";
-const KEEP_ALIVE_THREAD = "KeepAliveThread";
-
-using DataStructures
 
 mutable struct MqttSession
     clientId::String
@@ -34,21 +33,11 @@ mutable struct MqttClient
     willFlag::Bool
     keepAlivePeriod::Int
 
+    staticMsgId::UInt16
+    sendReceiveChannel
+    msgReceivedChannel
+    subscribedTopicMsgChannel
 
-
-    # inflight messages queue
-    inflightQueue
-    # internal queue for received messages about inflight messages
-    internalQueue
-    # internal queue for dispatching events
-    eventQueue
-
-    # event handlers
-    #MqttMsgPublishReceiveEventHandler
-    #MqttMsgPublishedEventHandler
-    #MqttMsgSubscribedEventHandler
-    #MqttMsgUnsubscribedEventHandler
-    #ConnectionClosedEventHandler
     function MqttClient(
       channel::MqttNetworkChannel = MqttNetworkChannel(TCPSocket(), "test.mosquitto.org", 1883),
       protocolVersion::MqttVersion = PROTOCOL_VERSION_V3_1_1,
@@ -58,13 +47,14 @@ mutable struct MqttClient
       session::MqttSession = MqttSession(String(""), Dict()),
       isConnected::Bool = false,
       clientId::String = String(""),
-      cleanSession::Bool = false,
+      cleanSession::Bool = true,
       will::WillOptions = WillOptions(),
       willFlag::Bool = false,
       keepAlivePeriod::Int = 0,
-      inflightQueue = Queue(Int),
-      internalQueue = Queue(Int),
-      eventQueue = Queue(Int))
+      staticMsgId::UInt16 = UInt16(1),
+      sendReceiveChannel::Channel{Any} = Channel{Any}(1),
+      msgReceivedChannel::Channel{Any} = Channel{Any}(30),
+      subscribedTopicMsgChannel::Channel{Any} = Channel{Any}(10))
 
       this = new()
       this.protocolVersion = protocolVersion
@@ -79,9 +69,10 @@ mutable struct MqttClient
       this.will = will
       this.willFlag = willFlag
       this.keepAlivePeriod = keepAlivePeriod
-      this.inflightQueue = inflightQueue
-      this.internalQueue = internalQueue
-      this.eventQueue = eventQueue
+      this.staticMsgId = staticMsgId
+      this.sendReceiveChannel = sendReceiveChannel
+      this.msgReceivedChannel = msgReceivedChannel
+      this.subscribedTopicMsgChannel = subscribedTopicMsgChannel
       return this
     end
 end
@@ -93,9 +84,8 @@ function MqttConnect(_client::MqttClient,
   _password::String = "",
   _will::WillOptions = WillOptions(),
   _willFlag::Bool = false,
-  _cleanSession::Bool = false,
-  _keepAlivePeriode::Int = 0)
-
+  _cleanSession::Bool = true,
+  _keepAlivePeriode::UInt16 = UInt16(0))
   #Create CONNECT Message
     msgConnect = MqttMsgConnect(_clientId,
     username=_username,
@@ -104,7 +94,9 @@ function MqttConnect(_client::MqttClient,
     willFlag=_willFlag,
     cleanSession=_cleanSession,
     keepAlivePeriod=_keepAlivePeriode,
-    protocolLevel=_client.protocolVersion)
+    protocolLevel=_client.protocolVersion,
+    staticMsgId =_client.staticMsgId)
+    _client.staticMsgId
 
     try
         #Connect to Broker
@@ -116,27 +108,29 @@ function MqttConnect(_client::MqttClient,
     _client.lastCommTime = 0
     _client.isRunning = true
     _client.isConnectionClosing = false
-    # TODO: start receiving thread
-    receiveTask = Task(ReceiveThread(_client))
-    schedule(receiveTask)
 
-    connack::MqttMsgConnack = SendReceive(msgConnect, _client.channel)
+    #start receiving thread
+    receiveTask() = ReceiveThread(_client)
+    t = Task(receiveTask)
+    schedule(t)
+    Write(_client.channel, Serialize(msgConnect))
+    msgReceived = take!(_client.sendReceiveChannel)
     # if connection accepted, start keep alive timer and
-    if connack.returnCode == CONN_ACCEPTED
+    if msgReceived.returnCode == CONN_ACCEPTED
 
         # set all client properties
-        client.clientId = _clientId
-        client.cleanSession = _cleanSession
-        client.willFlag = _willFlag
-        client.will = _will
+        _client.clientId = _clientId
+        _client.cleanSession = _cleanSession
+        _client.willFlag = _willFlag
+        _client.will = _will
 
-        client.keepAlivePeriod = KEEP_ALIVE_PERIOD_DEFAULT * 1000 # convert in ms
+        _client.keepAlivePeriod = KEEP_ALIVE_PERIOD_DEFAULT * 1000 # convert in ms
 
         # restore previous session
         # this.RestoreSession();
 
         #keep alive period equals zero means turning off keep alive mechanism
-        if (client.keepAlivePeriod != 0)
+        if (_client.keepAlivePeriod != 0)
             # start thread for sending keep alive message to the broker
             # Fx.StartThread(this.KeepAliveThread);
         end
@@ -147,26 +141,10 @@ function MqttConnect(_client::MqttClient,
         # start thread for handling inflight messages queue to broker asynchronously (publish and acknowledge)
         # Fx.StartThread(this.ProcessInflightThread);
 
-        client.isConnected = true;
+        _client.isConnected = true;
     end
-
-    return connack;
-
+    return msgReceived.returnCode;
 end #function
-
-function SendReceive(msgConnect::MqttMsgConnect, channel::MqttNetworkChannel; timeout::Int = MQTT_DEFAULT_TIMEOUT)
-  #reset handle before sending TODO
-  try
-    Write(channel, Serialize(msgConnect))
-  catch err
-    showerror(STDOUT, err, backtrace()); println()
-  end
-
-    connack::MqttMsgConnack = MqttMsgConnack()
-
-
-    return connack
-end
 
 function RestoreSession()
 
@@ -175,9 +153,11 @@ end
 function MqttDisconnect()
 
 end
-
-function MqttSubscribe()
-
+#Subscribe to message Topics
+function MqttSubscribe(_client::MqttClient, topics::Vector{String}, qosLevels::Vector{UInt8})
+  subscribe::MqttMsgSubscribe = MqttMsgSubscribe(MqttMsgBase(SUBSCRIBE_TYPE, _client.staticMsgId), topics, qosLevels)
+  _client.staticMsgId += 1
+  Write(client.channel, Serialize(subscribe))
 end
 
 function MqttUnsubscribe()
@@ -192,23 +172,116 @@ end
 function KeepAliveThread()
 end
 
+#Enque a message into internal queue
+function EnqueueInternal(msg::MqttMsgBase, client::MqttClient)
+  enqueueNeeded::Bool = true
+  #If PUBREL Message
+  if (msg.fixedHeader >> MSG_TYPE_OFFSET) == PUBREL_TYPE
+    lock(inflightQueueLock)
+    #If corresponding PUBLISH isn't in the inflight queue, it means it was alreadyprocessed
+    #and PUBREL was already received and we send PUBCOMP, but PUBCOMB didn't reached Broker
+    #Only re-send PUBCOMP
+    msgContext = FindPublishInInflightQueue(msg.msgId, ToAcknowledge)
+    if msgContext == 0
+      pubcomp::MqttMsgPubcomp = MqttMsgPubcomp()
+      pubcomp.msgBase.msgId = msg.msgId
+      Write(client.channel, Serialize(pubcomp))
+      enqueueNeeded = false
+    end
+    unlock(inflightQueueLock)
+    #If PUBCOM Message
+  elseif (msg.fixedHeader >> MSG_TYPE_OFFSET) == PUBCOMP_TYPE
+    lock(inflightQueueLock)
+    #if corresponding PUBLISH isn't in the inflight queue, it means
+    #We sent PUBLISH message, sent PUBREL (after receiving PUBREC)
+    #and alread received PUBCOMP, but publisher didn't receive PUBREL so it re-sent PUBCOMP. We onlc ignore this PUBCOMP
+    msgContext = FindPublishInInflightQueue(msg.msgId, ToPublish)
+    if msgContext == 0
+      enqueueNeeded = false
+    end
+    unlock(inflightQueueLock)
+  elseif (msg.fixedHeader >> MSG_TYPE_OFFSET) == PUBREC_TYPE
+    lock(inflightQueueLock)
+    #if corresponding PUBLISH isn't in the inflight queue, it means
+    #that we sent PUBLISH several times but broker didn't send PUBREC in times
+    #the publish is failed and we only need to ignore this PUBREX
+    msgContext = FindPublishInInflightQueue(msg.msgId, ToPublish)
+    if msgContext == 0
+      enqueueNeeded = false
+    end
+    unlock(inflightQueueLock)
+  end
+  if enqueueNeeded == true
+    lock(internalQueueLock)
+    enqueue!(internalQueue, msg)
+    unlock(internalQueueLock)
+  end
+end
+
+#Search is PUBLISH message is in inflightQueue, if yes return it else return null
+function FindPublishInInflightQueue(messageId::UInt8, flow::MqttMsgFlow)
+  msgIte = start(inflightQueue)
+  while !done(inflightQueue, msgIte)
+    (i, msgIte) = next(inflightQueue, msgIte)
+    if i.message.msgBase.msgId == messageId && (i.message.fixedHeader >> MSG_TYPE_OFFSET) == PUBLISH_TYPE && i.flow == flow
+      return i
+    end
+  end
+  return 0
+end
+
+#Async Task which waits for incoming message
+#Parse them together, or throw error for wrong message
 function ReceiveThread(client::MqttClient)
   readBytes::Int = 0
   fixedHeaderFirstByte = UInt8[0x00]
   msgType::UInt8 = 0x00
 
   @async while true
-    try
-      readBytes = Read(client.channel, fixedHeaderFirstByte)
-      if readBytes > 0x00
-        msgType = ((fixedHeaderFirstByte[1] & MSG_TYPE_MASK) >> MSG_TYPE_OFFSET)::UInt8
-        if msgType == UInt8(CONNACK_TYPE)
-          println("CONNACK MESSAGE RECEIVED!")
-        end
+    readBytes = Read(client.channel, fixedHeaderFirstByte)
+    if readBytes > 0x00
+      msgType = ((fixedHeaderFirstByte[1] & MSG_TYPE_MASK) >> MSG_TYPE_OFFSET)::UInt8
+      if MsgType == UInt8(CONNECT_TYPE)
+        throw(ErrorException("WRONG BROKER MESSAGE! (CONNECT)"))
+      elseif msgType == UInt8(CONNACK_TYPE)
+        println("CONNACK MESSAGE RECEIVED!")
+        put!(client.sendReceiveChannel, MsgConnackParse(client.channel))
+      elseif msgType == UInt8(PINGREQ_TYPE)
+        throw(ErrorException("WRONG BROKER MESSAGE! (PINGREQ)"))
+      elseif msgType == UInt8(PINGRESP_TYPE)
+        println("PINGRESP MESSAGE RECEIVED!")
+      elseif msgType == UInt8(SUBSCRIBE_TYPE)
+        throw(ErrorException("WRONG BROKER MESSAGE! (SUBSCRIBE)"))
+      elseif msgType == UInt8(SUBACK_TYPE)
+        println("SUBACK MESSAGE RECEIVED!")
+        put!((client.msgReceivedChannel), MsgSubackParse(client.channel))
+      elseif msgType == UInt8(PUBLISH_TYPE)
+        println("PUBLISH MESSAGE RECEIVED!")
+        put!(client.subscribedTopicMsgChannel, MsgPublishParse(client.channel, fixedHeaderFirstByte[1]))
+      elseif msgType == UInt8(PUBACK_TYPE)
+        println("PUBACK MESSAGE RECEIVED!")
+      elseif msgType == UInt8(PUBREC_TYPE)
+        println("PUBREC MESSAGE RECEIVED!")
+      elseif msgType == UInt8(PUBREL_TYPE)
+        println("PUBREL MESSAGE RECEIVED!")
+      elseif msgType == UInt8(PUBCOMP_TYPE)
+        println("PUBCOMP MESSAGE RECEIVED!")
+      elseif msgType == UInt8(PUBCOMP_TYPE)
+        println("PUBCOMP MESSAGE RECEIVED!")
+      elseif msgType == UInt8(UNSUBSCRIBE_TYPE)
+        throw(ErrorException("WRONG BROKER MESSAGE! (UNSUBSCRIBE)"))
+      elseif msgType == UInt8(UNSUBACK_TYPE)
+        println("UNSUBACK MESSAGE RECEIVED!")
+      elseif msgType == UInt8(DISCONNECT_TYPE)
+        throw(ErrorException("WRONG BROKER MESSAGE! (DISCONNECT)"))
+      else
+        throw(ErrorException("WRONG BROKER MESSAGE! (UNKNOWN)"))
       end
-    catch err
-      showerror(STDOUT, err, backtrace()); println()
     end
+    #try
+    #catch err
+    #  showerror(STDOUT, err, backtrace()); println()
+    #end
   end
 end
 
