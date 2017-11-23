@@ -8,11 +8,11 @@ mutable struct MqttMsgConnack <: MqttPacket
     sessionPresent::Bool
 
     # default constructor
-    MqttMsgConnack() = new(MqttMsgBase(CONNACK_TYPE), CONN_ACCEPTED, 0)
+    #MqttMsgConnack() = new(MqttMsgBase(CONNACK_TYPE, UInt16(0)), CONN_ACCEPTED, false)
 
     # constructor
-    function MqttMsgConnack(returnCode::ConnackCode, sessionPresent::Bool; msgBase = MqttMsgBase(CONNACK_TYPE))
-        return new(MqttMsgBase(CONNACK_TYPE), returnCode, sessionPresent)
+    function MqttMsgConnack(returnCode::ConnackCode, sessionPresent::Bool; msgBase::MqttMsgBase = MqttMsgBase(CONNACK_TYPE, UInt16(0)))
+        return new(msgBase, returnCode, sessionPresent)
     end # function
 end # struct
 
@@ -35,16 +35,17 @@ end
 =#
 
 # Deserialize MQTT message connack
-function Deserialize(msg::MqttMsgConnack, network::MqttNetworkChannel)
+function MsgConnackParse(network::MqttNetworkChannel)
 
     remainingLength::Int = 0
-    buffer::Vector{UInt8}
+    msg::MqttMsgConnack = MqttMsgConnack(CONN_ACCEPTED, false)
 
     remainingLength = decodeRemainingLength(network)
     buffer = Vector{UInt8}(remainingLength)
-    numberOfBytes = Receive(network, buffer)
-    msg.sessionPresent = (buffer.at(1) & 0x00) != 0x00
-    msg.returnCode = buffer.at(2)
-
+    Read(network, buffer)
+    msg.sessionPresent = (buffer[1] & 0x00) != 0x00
+    msg.returnCode = buffer[2]
     return msg
+end
+
 end
