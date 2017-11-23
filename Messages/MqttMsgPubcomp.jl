@@ -15,6 +15,41 @@ mutable struct MqttMsgPubcomp <: MqttPacket
     end # function
 end # struct
 
+#Serialize a MqttMsgPubcomp package to send it
+function Serialize(msgConnect::MqttMsgPubcomp)
+
+  fixedHeaderSize::Int = 1
+  varHeaderSize::Int = 0
+  payloadSize::Int = 0
+  remainingLength::Int = 0
+  index::Int = 1
+
+  varHeaderSize += MESSAGE_ID_SIZE
+  remainingLength += (varHeaderSize + payloadSize)
+
+  tmp::Int = remainingLength
+
+  while true
+    fixedHeaderSize += 1
+    tmp = round(tmp / 128)
+    if !(tmp > 0)
+      break
+    end
+  end
+
+  buffer = Array{UInt8}(fixedHeaderSize + varHeaderSize + payloadSize)
+  buffer[index] = (PUBCOMP_TYPE << MSG_TYPE_OFFSET) | PUBCOMP_FLAG_BITS
+  index += 1
+
+  index = encodeRemainingLength(remainingLength, buffer, index)
+
+  buffer[index] = (messageId >> 8) & 0x00FF #MSB
+  index += 1
+  buffer[index] = messageId & 0x00FF #LSB
+
+  return buffer
+end
+
 # Deserialize MQTT message publish complete
 function Deserialize(msg::MqttMsgPubcomp, network::MqttNetworkChannel)
 
