@@ -47,5 +47,3 @@ function MsgConnackParse(network::MqttNetworkChannel)
     msg.returnCode = buffer[2]
     return msg
 end
-
-end
