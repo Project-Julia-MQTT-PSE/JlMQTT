@@ -1,23 +1,25 @@
-
+include("Definitions.jl")
 include("MqttMsgBase.jl")
+include("../MqttNetworkChannel.jl")
 
 mutable struct MqttMsgDisconnect <: MqttPacket
     msgBase::MqttMsgBase
 
-    # default constructor
-    MqttMsgDisconnect() = new(MqttMsgBase(DISCONNECT_TYPE))
 
+  function MqttMsgDisconnect(base::MqttMsgBase = MqttMsgBase(DISCONNECT_TYPE, UInt16(0)))
+    return new(base)
+  end
 end # struct
 
 # Serialize MQTT message disconnect
 # returns a byte array
 function Serialize(msg::MqttMsgDisconnect)
 
-    msgPacket = Array{UInt8, 1}(2)
-    msgPacket[1] = msg.msgBase.fixedHeader
-    msgPacket[2] = 0 #reaminingLength field
+    buffer = Array{UInt8, 1}(2)
+    buffer[1] = msg.msgBase.fixedHeader
+    buffer[2] = UInt8(0) #reaminingLength field
 
-    return msgPacket
+    return buffer
 end
 
 """
