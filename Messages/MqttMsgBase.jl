@@ -71,8 +71,8 @@ mutable struct MqttMsgBase
         elseif (msgType == PINGRESP_TYPE)
             this.fixedHeader = UInt8(PINGRESP_TYPE) << MSG_TYPE_OFFSET
             this.fixedHeader |= PINGRESP_FLAG_BITS
-        elseif (msgType == DISCONNCT_TYPE)
-            this.fixedHeader = UInt8(DISCONNCT_TYPE) << MSG_TYPE_OFFSET
+        elseif (msgType == DISCONNECT_TYPE)
+            this.fixedHeader = UInt8(DISCONNECT_TYPE) << MSG_TYPE_OFFSET
             this.fixedHeader |= DISCONNECT_FLAG_BITS
         end
         return this
