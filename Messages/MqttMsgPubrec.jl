@@ -4,10 +4,9 @@ include("../MqttNetworkChannel.jl")
 
 mutable struct MqttMsgPubrec <: MqttPacket
     msgBase::MqttMsgBase
-    messageId::UInt8
 
     # default constructor
-    MqttMsgPubrec() = new(MqttMsgBase(PUBREC_TYPE), 0)
+    MqttMsgPubrec() = new(MqttMsgBase(PUBREC_TYPE, UInt16(0)))
 
     # constructor
     function MqttMsgPubrec(messageId::UInt8; msgBase = MqttMsgBase(PUBREC_TYPE))
@@ -16,16 +15,18 @@ mutable struct MqttMsgPubrec <: MqttPacket
 end # struct
 
 # Deserialize MQTT message publish receive
-function Deserialize(msg::MqttMsgPubrec, network::MqttNetworkChannel)
+function MsgPubrecParse(network::MqttNetworkChannel)
 
     remainingLength::Int = 0
-    buffer::Vector{UInt8}
+    msg::MqttMsgPubrec = MqttMsgPubrec()
 
     remainingLength = decodeRemainingLength(network)
     buffer = Vector{UInt8}(remainingLength)
-    numberOfBytes = Receive(network, buffer)
-    msg.messageId = (buffer.at(1) << 8) & 0xFF00
-    msg.messageId |= buffer.at(2)
+    Read(network, buffer)
+    msg.msgBase.msgId = (buffer[1] << 8) & 0xFF00
+    msg.msgBase.msgId |= buffer[2]
 
+    println("MESSAGE ID")
+        println(msg.msgBase.msgId)
     return msg
 end
