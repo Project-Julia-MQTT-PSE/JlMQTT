@@ -1,23 +1,25 @@
-
+include("Definitions.jl")
 include("MqttMsgBase.jl")
+include("../MqttNetworkChannel.jl")
 
 mutable struct MqttMsgPingreq <: MqttPacket
     msgBase::MqttMsgBase
 
     # default constructor
-    MqttMsgPingreq() = new(MqttMsgBase(PINGREQ_TYPE))
-
+  function MqttMsgPingreq(base::MqttMsgBase = MqttMsgBase(PINGREQ_TYPE, UInt16(0)))
+    return new(base)
+  end
 end # struct
 
 # Serialize MQTT message ping request
 # returns a byte array
 function Serialize(msg::MqttMsgPingreq)
 
-    msgPacket = Array{UInt8, 1}(2)
-    msgPacket[1] = msg.msgBase.fixedHeader
-    msgPacket[2] = 0 #reaminingLength field
+    buffer = Array{UInt8, 1}(2)
+    buffer[1] = msg.msgBase.fixedHeader
+    buffer[2] = UInt8(0) #reaminingLength field
 
-    return msgPacket
+    return buffer
 end
 
 """
@@ -26,3 +28,4 @@ println(m)
 b = Serialize(m)
 println(b)
 """
+
