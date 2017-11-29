@@ -181,7 +181,7 @@ function MqttUnsubscribe(client::MqttClient, topics::Vector{String})
 end
 
 function MqttPublish(client::MqttClient, topic::String, message::Vector{UInt8}; qos::QosLevel = AT_MOST_ONCE, retain::Bool = false)
-  publish::MqttMsgPublish = MqttMsgPublish(topic, message, base=MqttMsgBase(PUBLISH_TYPE, client.staticMsgId, retain=retain, dup=false, qos=qos))
+  publish::MqttMsgPublish = MqttMsgPublish(topic, message=message, base=MqttMsgBase(PUBLISH_TYPE, client.staticMsgId, retain=retain, dup=false, qos=qos))
   client.staticMsgId += 1
   Write(client.channel, Serialize(publish))
 end
