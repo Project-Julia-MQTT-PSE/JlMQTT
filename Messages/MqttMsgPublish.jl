@@ -25,8 +25,8 @@ mutable struct MqttMsgPublish <: MqttPacket
   message::Vector{UInt8}
 
   function MqttMsgPublish(
-    topic::String,
-    message::Vector{UInt8};
+    topic::String;
+    message::Vector{UInt8} = Vector{UInt8}(1),
     base = MqttMsgBase(PUBLISH_TYPE, UInt16(0), retain=false, dup=false, qos=AT_MOST_ONCE))
     return new(base, topic, message)
   end
@@ -120,7 +120,7 @@ end
 
 function MsgPublishParse(network::MqttNetworkChannel, fixedHeaderFirstByte::UInt8)
   index::Int = 1
-  msg::MqttMsgPublish = MqttMsgPublish("", "")
+  msg::MqttMsgPublish = MqttMsgPublish("")
 
   #Allocate Buffer
   remainingLength::Int = decodeRemainingLength(network)
