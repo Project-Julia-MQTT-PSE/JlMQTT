@@ -19,6 +19,16 @@ messageId = OPTIONAL, only required if QoS level is set to level 1 or 2, to iden
 
 =#
 
+" " "
+Structure generates a publish package which is sent to the broker.
+
+. . .
+'msgBase::MqttMsgBase' : Message base instance used in creation of package.
+'topic::String' : The topic message is published to in string form.
+'message:Vector{UInt8}' : The message itself that is published to the topic and will be sent to all subscribers
+. . .
+" " "
+
 mutable struct MqttMsgPublish <: MqttPacket
   msgBase::MqttMsgBase
   topic::String
@@ -33,6 +43,12 @@ mutable struct MqttMsgPublish <: MqttPacket
 
 end
 
+" " "
+Serialize(msgPublish)
+
+Serializes the publish message.
+
+" " "
 function Serialize(msgPublish::MqttMsgPublish)
   fixedHeaderSize::Int = 0
   varHeaderSize::Int = 0
@@ -117,7 +133,12 @@ function Serialize(msgPublish::MqttMsgPublish)
       end
       return msgPackage
 end
+" " "
+MsgPublishParse(network, fixedHeaderFirstByte)
 
+Function reconstructs a publish message that is sent from the broker to client by parsing it.
+
+" " "
 function MsgPublishParse(network::MqttNetworkChannel, fixedHeaderFirstByte::UInt8)
   index::Int = 1
   msg::MqttMsgPublish = MqttMsgPublish("")

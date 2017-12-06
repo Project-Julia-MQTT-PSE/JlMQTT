@@ -14,8 +14,6 @@ mutable struct MqttMsgBase
 
     Constructor generates a message base which can vary depending on parameters passed in.
 
-
-
     " " "
     MqttMsgBase() = new(0, false, false, AT_MOST_ONCE, 0)
 
