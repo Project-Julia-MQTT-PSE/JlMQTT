@@ -24,7 +24,6 @@ mutable struct MqttSession
 end
 
 mutable struct MqttClient
-
     protocolVersion::MqttVersion
     channel::MqttNetworkChannel
 
@@ -46,46 +45,29 @@ mutable struct MqttClient
     subscribedTopicMsgChannel
     inflightQueue
     inflightQueueLock
-    function MqttClient(
-      channel::MqttNetworkChannel = MqttNetworkChannel(TCPSocket(), "test.mosquitto.org", 1883),
-      protocolVersion::MqttVersion = PROTOCOL_VERSION_V3_1_1,
-      lastCommTime::Int = 0,
-      isRunning::Bool = false,
-      isConnectionClosing::Bool = false,
-      session::MqttSession = MqttSession(String(""), Dict()),
-      isConnected::Bool = false,
-      clientId::String = String(""),
-      cleanSession::Bool = true,
-      will::WillOptions = WillOptions(),
-      willFlag::Bool = false,
-      keepAlivePeriod::Int = 0,
-      staticMsgId::UInt16 = UInt16(1),
-      sendReceiveChannel::Channel{Any} = Channel{Any}(1),
-      msgReceivedChannel::Channel{Any} = Channel{Any}(30),
-      subscribedTopicMsgChannel::Channel{Any} = Channel{Any}(10),
-      inflightQueue::Channel{Any} = Channel{Any}(40),
-      inflightQueueLock = Threads.Mutex())
-
-      this = new()
-      this.protocolVersion = protocolVersion
-      this.channel = channel
-      this.lastCommTime = lastCommTime
-      this.isRunning = isRunning
-      this.isConnectionClosing = isConnectionClosing
-      this.session = session
-      this.isConnected = isConnected
-      this.clientId = clientId
-      this.cleanSession = cleanSession
-      this.will = will
-      this.willFlag = willFlag
-      this.keepAlivePeriod = keepAlivePeriod
-      this.staticMsgId = staticMsgId
-      this.sendReceiveChannel = sendReceiveChannel
-      this.msgReceivedChannel = msgReceivedChannel
-      this.subscribedTopicMsgChannel = subscribedTopicMsgChannel
-      return this
-    end
 end
+
+MqttClient() = MqttClient(
+    PROTOCOL_VERSION_V3_1_1,
+    MqttNetworkChannel(TCPSocket(), "141.100.70.71", 1883), # 141.100.70.71:1883 MQTT_Server.fbi.h-da.de
+    0,
+    false,
+    false,
+    MqttSession(String(""), Dict()),
+    false,
+    String(""),
+    true,
+    WillOptions(),
+    false,
+    0,
+    UInt16(1),
+    Channel{Any}(1),
+    Channel{Any}(30),
+    Channel{Any}(10),
+    Channel{Any}(40),
+    Threads.Mutex())
+
+
 #MqttClient() = MqttClient("clientid", false, false, WillOptions(), false, MqttNetworkChannel(), PROTOCOL_VERSION_V3_1_1, MqttSession(String(""), Dict()), 60, 0, false )
 #Sending CONNECT Message to broker
 function MqttConnect(_client::MqttClient,
@@ -200,13 +182,80 @@ end
 
 #Enquue a message into the inflight queue
 function EnqueueInflight(msg, flow::MqttMsgFlow, client::MqttClient)
-  enqueue::Bool = true
+    enqueue::Bool = true
 
-  #if it's a PUBLISH MESSAGE with Qos2
+    #if it's a PUBLISH MESSAGE with Qos2
     msgType = ((msg.msgBase.fixedHeader & MSG_TYPE_MASK) >> MSG_TYPE_OFFSET)::UInt8
-  if msgType == PUBLISH_TYPE && msg.msgBase.qos == EXACTLY_ONCE
+    if msgType == PUBLISH_TYPE && msg.msgBase.qos == EXACTLY_ONCE
 
-  end
+        #lock(inflightQueueLock)
+
+        # if it is a PUBLISH message already received (it is in the inflight queue), the publisher
+        # re-sent it because it didn't received the PUBREC. In this case, we have to re-send PUBREC
+
+        # NOTE : I need to find on message id and flow because the broker could be publish/received
+        #        to/from client and message id could be the same (one tracked by broker and the other by client)
+        msgContext = FindPublishInInflightQueue(msg.msgId, ToAcknowledge)
+        if msgContext != 0
+          msgContext.state = QueuedQos2
+          msgContext.flow = ToAcknowledge
+          enqueue = false
+        end
+
+        #unlock(inflightQueueLock)
+    end # if
+
+    if enqueue
+        state::MqttMsgState = QueuedQos0
+
+        # based on QoS level, the messages flow between broker and client changes
+        if msg.msgBase.qos == AT_MOST_ONCE
+            state = QueuedQos0
+        elseif msg.msgBase.qos == AT_LEAST_ONCE
+            state = QueuedQos1
+        elseif msg.msgBase.qos == EXACTLY_ONCE
+            state = QueuedQos2
+        end
+    end
+
+    # [v3.1.1] SUBSCRIBE and UNSUBSCRIBE aren't "officially" QOS = 1
+    #          so QueuedQos1 state isn't valid for them
+    if msgType == SUBSCRIBE_TYPE
+        state = SendSubscribe
+    elseif (msgType == UNSUBSCRIBE_TYPE)
+        state = SendUnsubscribe
+    end
+
+    newMsgContext::MqttMsgContext = MqttMsgContext(msg.msgBase, state, flow, 0, 0)
+
+    #lock(inflightQueueLock)
+
+    # check number of messages inside inflight queue
+    enqueue = length(client.inflightQueue) < typemax(UInt16) # TODO: set max queue size elsewhere
+    if enqueue
+        enqueue!(client.inflightQueue, newMsgContext)
+
+        if msgType == PUBLISH_TYPE
+            # to publish and QoS level 1 or 2
+            if (newMsgContext.flow == ToPublish) && ((msg.msgBase.qos == AT_LEAST_ONCE) || (msg.msgBase.qos == EXACTLY_ONCE))
+
+                if (client.session != null)
+                    enqueue!(client.session.InflightMessages, newMsgContext)
+                    #client.session.inFlightMessages.Add(msgContext.Key, msgContext);
+                end
+                # to acknowledge and QoS level 2
+            elseif (newMsgContext.flow == ToAcknowledge) && (msg.msgBase.qos == EXACTLY_ONCE)
+                if (this.session != null)
+                    enqueue!(client.session.InflightMessages, newMsgContext)
+                    #client.session.inFlightMessages.Add(msgContext.Key, msgContext);
+                end
+            end
+        end
+    end
+
+    #unlock(inflightQueueLock)
+
+    return enqueue
 end
 
 #Enque a message into internal queue
@@ -274,12 +323,12 @@ function ReceiveThread(client::MqttClient)
   fixedHeaderFirstByte = UInt8[0x00]
   msgType::UInt8 = 0x00
 
-  @async while true
+  @async while client.isRunning
     readBytes = Read(client.channel, fixedHeaderFirstByte)
     if readBytes > 0x00
       msgType = ((fixedHeaderFirstByte[1] & MSG_TYPE_MASK) >> MSG_TYPE_OFFSET)::UInt8
       println(msgType)
-      if MsgType == UInt8(CONNECT_TYPE)
+      if msgType == UInt8(CONNECT_TYPE)
         throw(ErrorException("WRONG BROKER MESSAGE! (CONNECT)"))
       elseif msgType == UInt8(CONNACK_TYPE)
         println("CONNACK MESSAGE RECEIVED!")
@@ -330,7 +379,43 @@ end
 function DispatchEventThread()
 end
 
-function ProcessInflightThread()
+function ProcessInflightThread(client::MqttClient)
+
+    msgContext::MqttMsgContext = 0
+    msgInflight::MqttPacket = 0
+    acknowledge::bool = false
+    msgReceivedProcessed::bool = false
+
+    @async while client.isRunning
+        if client.isRunning
+            #lock(inflightQueueLock)
+            msgReceivedProcessed = false
+            acknowledge = false
+
+            count::Int = length(client.inflightQueue)
+
+            while count > 0
+                count -= 1
+                acknowledge = false
+                if !client.isRunning break end
+
+                #msgContext::MqttMsgContext =
+            end
+        end
+    end
+end
+
+function test()
+
+    msg::Nullable{MqttPacket} = Nullable{MqttPacket}()
+
+    if isnull(msg)
+        println("1 $msg")
+    end
+
+    msg::MqttPacket = MqttMsgConnect(MqttMsgBase(),"123", "user", "pw", WillOptions(false, AT_MOST_ONCE, String(""), String("")), false, false, KEEP_ALIVE_PERIOD_DEFAULT, PROTOCOL_VERSION_V3_1_1, 0)
+
+    println("2 $msg")
 end
 
 """
