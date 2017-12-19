@@ -1,4 +1,3 @@
-export PROTOCOL_NAME_V3_1, PROTOCOL_NAME_V3_1_1, QosLevel, MsgType, MqttVersion
 
 # MQTT message types
 @enum MsgType CONNECT_TYPE = 0x01 CONNACK_TYPE = 0x02 PUBLISH_TYPE = 0x03 PUBACK_TYPE = 0x04 PUBREC_TYPE = 0x05 PUBREL_TYPE = 0x06 PUBCOMP_TYPE = 0x07 SUBSCRIBE_TYPE = 0x08 SUBACK_TYPE = 0x09 UNSUBSCRIBE_TYPE = 0x0A UNSUBACK_TYPE = 0x0B PINGREQ_TYPE = 0x0C PINGRESP_TYPE = 0x0D DISCONNECT_TYPE = 0x0E
@@ -9,25 +8,11 @@ export PROTOCOL_NAME_V3_1, PROTOCOL_NAME_V3_1_1, QosLevel, MsgType, MqttVersion
 # return codes for CONNACK message
 @enum ConnackCode CONN_ACCEPTED = 0x00 CONN_REFUSED_PROT_VERS = 0x01 CONN_REFUSED_IDENT_REJECTED = 0x02 CONN_REFUSED_SERVER_UNAVAILABLE = 0x03 CONN_REFUSED_USERNAME_PASSWORD = 0x04 CONN_REFUSED_NOT_AUTHORIZED = 0x05
 
-@enum MqttVersion PROTOCOL_VERSION_DEFAULT = 0 PROTOCOL_VERSION_V3_1 = 3 PROTOCOL_VERSION_V3_1_1 = 4
-
 # Flow og message
 @enum MqttMsgFlow ToPublish = 0x01 ToAcknowledge = 0x02
 
 #MQTT message state
-@enum MqttMsgState QueuedQos0 = 0x01 QueuedQos1 = 0x02 QueuedQos2 = 0x03 WaitForPuback = 0x04 WaitForPubrec = 0x05 WaitForPubrel = 0x06 WaitForPubcomp = 0x07 SendPubrec = 0x08 SendPubrel = 0x09 SendPubcomp = 0x10 SendPuback = 0x11 SendSubscribe = 0x12 SendUnsubscribe = 0x13 WaitForSuback = 0x14 WaitForUnsuback = 0x15
-
-# protocol name supported
-const PROTOCOL_NAME_V3_1 = "MQIsdp"
-const PROTOCOL_NAME_V3_1_1 = "MQTT" # [v.3.1.1]
-
-# variable header fields
-#const PROTOCOL_NAME_LEN_SIZE = 2
-#const PROTOCOL_NAME_V3_1_SIZE = 6
-#const PROTOCOL_NAME_V3_1_1_SIZE = 4 # [v.3.1.1]
-#const PROTOCOL_VERSION_SIZE = 1
-#const CONNECT_FLAGS_SIZE = 1
-#const KEEP_ALIVE_TIME_SIZE = 2
+@enum MqttMsgState WaitForPuback = 0x01 WaitForPubrec = 0x02 WaitForPubrel = 0x03 WaitForPubcomp = 0x04 WaitForSuback = 0x05 WaitForUnsuback = 0x06
 
 # MQTT message flags
 const CONNECT_FLAG_BITS = 0x00
@@ -63,5 +48,6 @@ const RETAIN_FLAG_OFFSET = 0x00
 const RETAIN_FLAG_SIZE = 0x01
 
 #Settings
-const MQTT_DEFAULT_TIMEOUT = 30000
+const MQTT_DEFAULT_CONTEXT_TIMEOUT = 3000
+const MQTT_DEFAULT_CONTEXT_RETRY = 3
 const MESSAGE_ID_SIZE = 2
