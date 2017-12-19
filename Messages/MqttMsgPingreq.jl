@@ -2,9 +2,9 @@ include("Definitions.jl")
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
+#Mqtt Ping request package
 mutable struct MqttMsgPingreq <: MqttPacket
     msgBase::MqttMsgBase
-
     # default constructor
   function MqttMsgPingreq(base::MqttMsgBase = MqttMsgBase(PINGREQ_TYPE, UInt16(0)))
     return new(base)
@@ -21,11 +21,3 @@ function Serialize(msg::MqttMsgPingreq)
 
     return buffer
 end
-
-"""
-m = MqttMsgPingreq()
-println(m)
-b = Serialize(m)
-println(b)
-"""
-
