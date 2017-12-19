@@ -2,18 +2,19 @@ include("Definitions.jl")
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
-#Mqtt Ping request package
-mutable struct MqttMsgPingreq <: MqttPacket
+#Mqtt Disconnect packages
+mutable struct MqttMsgDisconnect <: MqttPacket
     msgBase::MqttMsgBase
-    # default constructor
-  function MqttMsgPingreq(base::MqttMsgBase = MqttMsgBase(PINGREQ_TYPE, UInt16(0)))
+
+
+  function MqttMsgDisconnect(base::MqttMsgBase = MqttMsgBase(DISCONNECT_TYPE, UInt16(0)))
     return new(base)
   end
 end # struct
 
-# Serialize MQTT message ping request
+# Serialize MQTT message disconnect
 # returns a byte array
-function Serialize(msg::MqttMsgPingreq)
+function Serialize(msg::MqttMsgDisconnect)
 
     buffer = Array{UInt8, 1}(2)
     buffer[1] = msg.msgBase.fixedHeader
