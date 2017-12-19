@@ -12,6 +12,7 @@ topic = topic to which the message will be published
 messageId = OPTIONAL, only required if QoS level is set to level 1 or 2, to identify a specific message
 =#
 
+#Mqtt Subscribe Package
 mutable struct MqttMsgSubscribe <: MqttPacket
   msgBase::MqttMsgBase
   topics::Vector{String}
@@ -25,6 +26,8 @@ mutable struct MqttMsgSubscribe <: MqttPacket
   end
 end
 
+# Serialize MQTT message Subscribe
+#REturn byte Array
 function Serialize(msgSubscribe::MqttMsgSubscribe)
   fixedHeaderSize::Int = 1
   varHeaderSize::Int = 0
