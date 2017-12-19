@@ -1,5 +1,6 @@
 
 include("MqttClient.jl")
+include("JlMqtt.jl")
 include("Messages/Definitions.jl")
 
 client = MqttClient()
@@ -21,11 +22,12 @@ m = convert(Array{UInt8}, "Hello World!")
 q = Array{UInt8}(1)
 q[1] = EXACTLY_ONCE
 #q[2] = EXACTLY_ONCE
-#MqttSubscribe(client, t, q)
+MqttSubscribe(client, t, q)
 #MqttUnsubscribe(client, t)
 
 
 #MqttPublish(client, "test/1", m, qos=AT_LEAST_ONCE)
-#MqttPublish(client, "test/1", m, qos=EXACTLY_ONCE)
-#MqttPublish(client, "test/1", m, qos=AT_LEAST_ONCE)
-MqttDisconnect(client)
+MqttPublish(client, "test/1", m, qos=EXACTLY_ONCE)
+#MqttPublish(client, "test/1", m, qos=AT_MOST_ONCE)
+
+#MqttDisconnect(client)
