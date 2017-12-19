@@ -1,15 +1,8 @@
 include("Definitions.jl")
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
-#const MAX_TOPIC_LENGTH = 65535;
-#const MIN_TOPIC_LENGTH = 1;
-#const MESSAGE_ID_SIZE = 2;
-#const MQTT_MSG_UNSUBSCRIBE_TYPE = 0x0A;
-#const MSG_TYPE_OFFSET = 0x04;
-#const QOS_LEVEL_OFFSET = 0x01;
-#const DUP_FLAG_OFFSET = 0x03;
-#const QOS_LEVEL_AT_LEAST_ONCE = 0x01;
 
+#Mqtt Unsubscibe Package
 mutable struct MqttMsgUnsubscribe <: MqttPacket
     msgBase::MqttMsgBase
     topics::Vector{String}
@@ -18,6 +11,8 @@ mutable struct MqttMsgUnsubscribe <: MqttPacket
     end
 end
 
+# Serialize MQTT message Unsubscibe
+#REturn Byte Array
 function Serialize(msgUnsubscribe::MqttMsgUnsubscribe)
   fixedHeaderSize::Int = 1
   varHeaderSize::Int = 0
