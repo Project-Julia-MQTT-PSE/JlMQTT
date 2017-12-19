@@ -9,13 +9,10 @@ mutable struct MqttMsgBase
     qos::QosLevel
     msgId::UInt16
 
-    " " "
-    MqttMsgBase(msgType, msgId)
 
-    Constructor generates a message base which can vary depending on parameters passed in.
-
-    " " "
-    MqttMsgBase() = new(0, false, false, AT_MOST_ONCE, 0)
+    #MqttMsgBase(msgType, msgId)
+    #Constructor generates a message base which can vary depending on parameters passed in.
+    #MqttMsgBase() = new(0, false, false, AT_MOST_ONCE, 0)
 
     # constructor
     function MqttMsgBase(msgType::MsgType, msgId::UInt16;
@@ -84,13 +81,10 @@ mutable struct MqttMsgBase
     end
 end #struct
 
-" " "
-encodeRemainingLength(remainingLength, bufffer, idx)
+#encodeRemainingLength(remainingLength, bufffer, idx)
+#Function determines remaining length depending on header size so packets can be
+#read correctly by receiving station.
 
-Function determines remaining length depending on header size so packets can be
-read correctly by receiving station.
-
-" " "
 function encodeRemainingLength(remainingLength::Int, buffer::Array{UInt8, 1}, idx)
     digit::Int = 0
     while true
@@ -109,14 +103,10 @@ end
 nextByte = Vector{UInt8}(1)
 size(nextByte)
 
-" " "
+#decodeRemainingLength(network)
+#Decodes the remaining length by taking in a TCP socket as a parameter. The "network"
+#parameter is the TCP socket.
 
-decodeRemainingLength(network)
-
-Decodes the remaining length by taking in a TCP socket as a parameter. The "network"
-parameter is the TCP socket.
-
-" " "
 function decodeRemainingLength(network)
     multiplier::Int = 1
     value::Int = 0
