@@ -2,6 +2,7 @@ include("Definitions.jl")
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
+#Mqtt Disconnect packages
 mutable struct MqttMsgDisconnect <: MqttPacket
     msgBase::MqttMsgBase
 
@@ -21,10 +22,3 @@ function Serialize(msg::MqttMsgDisconnect)
 
     return buffer
 end
-
-"""
-m = MqttMsgDisconnect()
-println(m)
-b = Serialize(m)
-println(b)
-"""
