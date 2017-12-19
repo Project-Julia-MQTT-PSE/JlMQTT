@@ -1,18 +1,17 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
+#Mqtt Suback Package
 mutable struct MqttMsgSuback <: MqttPacket
   msgBase::MqttMsgBase
   grantedQosLevels::Vector{UInt8}
-
-  #MqttMsgSuback() = new(MqttMsgBase(SUBACK_TYPE, UInt16(0)), 0, Array{UInt8}(1))
-
   function MqttMsgSuback(base = MqttMsgBase(SUBACK_TYPE, UInt16(0)), grQosLevels::Vector{UInt8} = Array{UInt8}(5))
     return new(base, grQosLevels)
   end
 end
 
-#Parse a SUBACK Message from the inbound stream
+#Parse a SUBACK Message
+#Return a MqttMsgSuback Package
 function MsgSubackParse(network::MqttNetworkChannel)
   index::Int = 1
   msg::MqttMsgSuback = MqttMsgSuback()
@@ -37,3 +36,4 @@ function MsgSubackParse(network::MqttNetworkChannel)
   end
   return msg
 end
+
