@@ -1,22 +1,22 @@
-
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
+#Mqtt Pubcomp Package
 mutable struct MqttMsgPubcomp <: MqttPacket
     msgBase::MqttMsgBase
-    messageId::UInt8
 
     # default constructor
-    MqttMsgPubcomp() = new(MqttMsgBase(PUBCOMP_TYPE), 0)
+    #MqttMsgPubcomp() = new(MqttMsgBase(PUBCOMP_TYPE, UInt16(0)))
 
     # constructor
-    function MqttMsgPubcomp(messageId::UInt8; msgBase = MqttMsgBase(PUBCOMP_TYPE))
-        return new(msgBase, messageId)
+    function MqttMsgPubcomp(msgBase = MqttMsgBase(PUBCOMP_TYPE, UInt16(0)))
+        return new(msgBase)
     end # function
 end # struct
 
-#Serialize a MqttMsgPubcomp package to send it
-function Serialize(msgConnect::MqttMsgPubcomp)
+#Serialize a MqttMsgPubcomp package
+#Return a Byte Array
+function Serialize(message::MqttMsgPubcomp)
 
   fixedHeaderSize::Int = 1
   varHeaderSize::Int = 0
@@ -38,29 +38,30 @@ function Serialize(msgConnect::MqttMsgPubcomp)
   end
 
   buffer = Array{UInt8}(fixedHeaderSize + varHeaderSize + payloadSize)
-  buffer[index] = (PUBCOMP_TYPE << MSG_TYPE_OFFSET) | PUBCOMP_FLAG_BITS
+  buffer[index] = message.msgBase.fixedHeader
   index += 1
 
   index = encodeRemainingLength(remainingLength, buffer, index)
 
-  buffer[index] = (messageId >> 8) & 0x00FF #MSB
+  buffer[index] = (message.msgBase.msgId >> 8) & 0x00FF #MSB
   index += 1
-  buffer[index] = messageId & 0x00FF #LSB
+  buffer[index] = message.msgBase.msgId & 0x00FF #LSB
 
   return buffer
 end
 
 # Deserialize MQTT message publish complete
-function Deserialize(msg::MqttMsgPubcomp, network::MqttNetworkChannel)
+#REturn a MqttMsgPubcomp Package
+function MqttMsgPubcompParse(network::MqttNetworkChannel)
 
     remainingLength::Int = 0
-    buffer::Vector{UInt8}
+    msg::MqttMsgPubcomp = MqttMsgPubcomp()
 
     remainingLength = decodeRemainingLength(network)
     buffer = Vector{UInt8}(remainingLength)
-    numberOfBytes = Receive(network, buffer)
-    msg.messageId = (buffer.at(1) << 8) & 0xFF00
-    msg.messageId |= buffer.at(2)
+    Read(network, buffer)
+    msg.msgBase.msgId = (buffer.at(1) << 8) & 0xFF00
+    msg.msgBase.msgId |= buffer.at(2)
 
     return msg
 end
