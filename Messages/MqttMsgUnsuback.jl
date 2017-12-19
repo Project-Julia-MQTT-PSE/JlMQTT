@@ -2,6 +2,7 @@ include("Definitions.jl")
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
+#Mqtt unsuback Package
 mutable struct MqttMsgUnsuback <: MqttPacket
     msgBase::MqttMsgBase
     function MqttMsgUnsuback(base::MqttMsgBase = MqttMsgBase(UNSUBACK_TYPE, UInt16(0)))
@@ -9,6 +10,8 @@ mutable struct MqttMsgUnsuback <: MqttPacket
     end
 end
 
+# Deserialize MQTT message unsuback
+#REturn a MqttMsgUnsuback Package
 function MsgUnsubackParse(network::MqttNetworkChannel)
   index::Int = 1
   msg::MqttMsgUnsuback = MqttMsgUnsuback()
@@ -24,3 +27,5 @@ function MsgUnsubackParse(network::MqttNetworkChannel)
 
   return msg
 end
+
+
