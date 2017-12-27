@@ -4,13 +4,12 @@ include("../MqttNetworkChannel.jl")
 #Mqtt Pubrec Package
 mutable struct MqttMsgPubrec <: MqttPacket
     msgBase::MqttMsgBase
-    # default constructor
-    #MqttMsgPubrec() = new(MqttMsgBase(PUBREC_TYPE, UInt16(0)))
-    # constructor
-    function MqttMsgPubrec(msgBase = MqttMsgBase(PUBREC_TYPE, UInt16(0)))
-        return new(msgBase)
-    end # function
-end # struct
+end
+
+#Pubrec package constructor
+function MqttMsgPubrecConstructor(msgBase = MqttMsgBase(PUBREC_TYPE, UInt16(0)))
+    return MqttMsgPubrec(msgBase)
+end
 
 
 # Serialize MQTT message publish receeived
@@ -52,7 +51,7 @@ end
 #return MqttMsgPubrec Package
 function MsgPubrecParse(network::MqttNetworkChannel)
     remainingLength::Int = 0
-    msg::MqttMsgPubrec = MqttMsgPubrec()
+    msg::MqttMsgPubrec = MqttMsgPubrecConstructor()
     remainingLength = decodeRemainingLength(network)
     buffer = Vector{UInt8}(remainingLength)
     Read(network, buffer)
