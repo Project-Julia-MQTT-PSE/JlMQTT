@@ -3,7 +3,7 @@ include("MqttClient.jl")
 include("JlMqtt.jl")
 include("Messages/Definitions.jl")
 
-client = MqttClient()
+client = MqttClientConstructor()
 @async while true
   println("WAITING FOR INCOMMING MESSAGE FROM SUBSCRIBED CHANNEL")
   println(take!(client.subscribedTopicMsgChannel))
@@ -23,11 +23,11 @@ q = Array{UInt8}(1)
 q[1] = EXACTLY_ONCE
 #q[2] = EXACTLY_ONCE
 MqttSubscribe(client, t, q)
-#MqttUnsubscribe(client, t)
 
 
-#MqttPublish(client, "test/1", m, qos=AT_LEAST_ONCE)
+MqttPublish(client, "test/1", m, qos=AT_LEAST_ONCE)
 MqttPublish(client, "test/1", m, qos=EXACTLY_ONCE)
-#MqttPublish(client, "test/1", m, qos=AT_MOST_ONCE)
+MqttPublish(client, "test/1", m, qos=AT_MOST_ONCE)
 
-#MqttDisconnect(client)
+MqttUnsubscribe(client, t)
+MqttDisconnect(client)
