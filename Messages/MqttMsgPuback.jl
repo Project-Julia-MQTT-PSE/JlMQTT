@@ -4,18 +4,19 @@ include("../MqttNetworkChannel.jl")
 #Mqtt Puback Package
 mutable struct MqttMsgPuback <: MqttPacket
     msgBase::MqttMsgBase
-    # constructor
-    function MqttMsgPuback(msgBase = MqttMsgBase(PUBACK_TYPE, UInt16(0)))
-        return new(msgBase)
-    end # function
-end # struct
+end
+
+#Puback package constructor
+function MqttMsgPubackConstructor(msgBase = MqttMsgBase(PUBACK_TYPE, UInt16(0)))
+    return MqttMsgPuback(msgBase)
+end
 
 # Deserialize MQTT message publish acknowledge
 #Return a MqttMsgPuback Package
 function MsgPubackParse(network::MqttNetworkChannel)
 
     remainingLength::Int = 0
-    msg::MqttMsgPuback = MqttMsgPuback()
+    msg::MqttMsgPuback = MqttMsgPubackConstructor()
 
     remainingLength = decodeRemainingLength(network)
     buffer = Vector{UInt8}(remainingLength)
