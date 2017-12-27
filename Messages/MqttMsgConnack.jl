@@ -1,22 +1,24 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
+#Represent the Connack package
 mutable struct MqttMsgConnack <: MqttPacket
     msgBase::MqttMsgBase
     returnCode::ConnackCode
     sessionPresent::Bool
 end
 
-# constructor
-function MqttMsgConnack(returnCode::ConnackCode, sessionPresent::Bool; msgBase::MqttMsgBase = MqttMsgBase(CONNACK_TYPE, UInt16(0)))
+#Connack constructor
+function MqttMsgConnackConstructor(returnCode::ConnackCode, sessionPresent::Bool; msgBase::MqttMsgBase = MqttMsgBase(CONNACK_TYPE, UInt16(0)))
     return MqttMsgConnack(msgBase, returnCode, sessionPresent)
 end
+
 # Deserialize MQTT message connack
 #Returns a MqttMsgConnack Package
 function MsgConnackParse(network::MqttNetworkChannel)
 
     remainingLength::Int = 0
-    msg::MqttMsgConnack = MqttMsgConnack(CONN_ACCEPTED, false)
+    msg::MqttMsgConnack = MqttMsgConnackConstructor(CONN_ACCEPTED, false)
 
     remainingLength = decodeRemainingLength(network)
     buffer = Vector{UInt8}(remainingLength)
