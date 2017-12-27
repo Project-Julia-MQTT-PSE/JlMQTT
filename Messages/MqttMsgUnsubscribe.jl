@@ -2,13 +2,15 @@ include("Definitions.jl")
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
-#Mqtt Unsubscibe Package
+# Unsubscibe Package
 mutable struct MqttMsgUnsubscribe <: MqttPacket
     msgBase::MqttMsgBase
     topics::Vector{String}
-    function MqttMsgUnsubscribe(base::MqttMsgBase = MqttMsgBase(UNSUBACK_TYPE, UInt16(0)), topics::Vector{String} = Vector{String})
-      return new(base, topics)
-    end
+end
+
+#unsubscrive package constructor
+function MqttMsgUnsubscribeConstructor(base::MqttMsgBase = MqttMsgBase(UNSUBACK_TYPE, UInt16(0)), topics::Vector{String} = Vector{String})
+  return MqttMsgUnsubscribe(base, topics)
 end
 
 # Serialize MQTT message Unsubscibe
