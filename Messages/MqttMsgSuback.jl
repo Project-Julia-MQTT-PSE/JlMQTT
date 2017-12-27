@@ -1,20 +1,22 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
-#Mqtt Suback Package
+# Suback Package
 mutable struct MqttMsgSuback <: MqttPacket
   msgBase::MqttMsgBase
   grantedQosLevels::Vector{UInt8}
-  function MqttMsgSuback(base = MqttMsgBase(SUBACK_TYPE, UInt16(0)), grQosLevels::Vector{UInt8} = Array{UInt8}(5))
-    return new(base, grQosLevels)
-  end
+end
+
+#Suback package constructor
+function MqttMsgSubackConstructor(base = MqttMsgBase(SUBACK_TYPE, UInt16(0)), grQosLevels::Vector{UInt8} = Array{UInt8}(5))
+  return MqttMsgSuback(base, grQosLevels)
 end
 
 #Parse a SUBACK Message
 #Return a MqttMsgSuback Package
 function MsgSubackParse(network::MqttNetworkChannel)
   index::Int = 1
-  msg::MqttMsgSuback = MqttMsgSuback()
+  msg::MqttMsgSuback = MqttMsgSubackConstructor()
 
   remainingLength = decodeRemainingLength(network)
   buffer = Vector{UInt8}(remainingLength)
@@ -29,11 +31,9 @@ function MsgSubackParse(network::MqttNetworkChannel)
     msg.grantedQosLevels[qosIdx] = buffer[index]
     qosIdx += 1
     index += 1
-    #POTENTIAL FUTURE ERROR IN THE IF CONDITION
     if index > remainingLength
       break
     end
   end
   return msg
 end
-
