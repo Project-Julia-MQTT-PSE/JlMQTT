@@ -22,20 +22,20 @@ function MqttConnect(_client::MqttClient,
   _clientId::String;
   _username::String = "",
   _password::String = "",
-  _will::WillOptions = WillOptions(),
+  _will::WillOptions = WillOptions(false, AT_MOST_ONCE, String(""), String("")),
   _willFlag::Bool = false,
-  _cleanSession::Bool = true,
-  _keepAlivePeriode::UInt16 = UInt16(0))
+  _cleanSession::Bool = true)
   #Create CONNECT Message
-    msgConnect = MqttMsgConnect(_clientId,
+    msgConnect = MqttMsgConnectConstructor(_clientId,
     username=_username,
     password=_password,
     will=_will,
     willFlag=_willFlag,
     cleanSession=_cleanSession,
-    keepAlivePeriod=_keepAlivePeriode,
-    staticMsgId =_client.staticMsgId)
-    _client.staticMsgId
+    keepAlivePeriod=_client.keepAlivePeriod,
+    staticMsgId = _client.staticMsgId)
+
+    _client.staticMsgId += 1
 
     try
         #Connect to Broker
@@ -43,10 +43,8 @@ function MqttConnect(_client::MqttClient,
     catch err
         showerror(STDOUT, err, backtrace()); println()
     end
-
     _client.lastCommTime = 0
     _client.isRunning = true
-
     #start receiving thread
     receiveTask() = ReceiveThread(_client)
     t = Task(receiveTask)
@@ -55,18 +53,6 @@ function MqttConnect(_client::MqttClient,
     msgReceived = take!(_client.sendReceiveChannel)
     # if connection accepted, start keep alive timer and
     if msgReceived.returnCode == CONN_ACCEPTED
-
-        # set all client properties
-        _client.clientId = _clientId
-        _client.cleanSession = _cleanSession
-        _client.willFlag = _willFlag
-        _client.will = _will
-
-        _client.keepAlivePeriod = KEEP_ALIVE_PERIOD_DEFAULT * 1000 # convert in ms
-
-        # restore previous session
-        # this.RestoreSession();
-
         #keep alive period equals zero means turning off keep alive mechanism
         if (_client.keepAlivePeriod != 0)
             # start thread for sending keep alive message to the broker
@@ -77,46 +63,46 @@ function MqttConnect(_client::MqttClient,
           c = Task(contextKeepAliveTask)
           schedule(c)
         end
+    else
+      _client.isRunning = false
+      for i in (client.contextMsgChannel, client.sendReceiveChannel, client.subscribedTopicMsgChannel)
+        close(i)
+      end
     end
     return msgReceived.returnCode;
-end #function
-
-
-
-function RestoreSession()
 end
 
 #Send the Disconnect Package to the Broker, and set isRunning = false
 function MqttDisconnect(client::MqttClient)
-  disconnect::MqttMsgDisconnect = MqttMsgDisconnect()
-  Write(client.channel, Serialize(disconnect))
+  Write(client.channel, Serialize(MqttMsgDisconnectConstructor()))
   client.isRunning = false
+  for i in (client.contextMsgChannel, client.sendReceiveChannel, client.subscribedTopicMsgChannel)
+    close(i)
+  end
 end
 
 #Send Subscribe package and enque package into contextMsgChannel for processing
 function MqttSubscribe(client::MqttClient, topics::Vector{String}, qosLevels::Vector{UInt8})
-  subscribe::MqttMsgSubscribe = MqttMsgSubscribe(MqttMsgBase(SUBSCRIBE_TYPE, client.staticMsgId), topics, qosLevels)
+  subscribe::MqttMsgSubscribe = MqttMsgSubscribeConstructor(MqttMsgBase(SUBSCRIBE_TYPE, client.staticMsgId), topics, qosLevels)
   client.staticMsgId += 1
   Write(client.channel, Serialize(subscribe))
-  put!((client.contextMsgChannel), MqttMsgContext(subscribe, WaitForSuback, ToAcknowledge))
+  put!((client.contextMsgChannel), MqttMsgContextConstructor(subscribe, WaitForSuback, ToAcknowledge))
 end
 
 #Send Unsubscribe package and enque package into contextMsgChannel for processing
 function MqttUnsubscribe(client::MqttClient, topics::Vector{String})
-  unsubscribe::MqttMsgUnsubscribe = MqttMsgUnsubscribe(MqttMsgBase(UNSUBSCRIBE_TYPE, client.staticMsgId), topics)
+  unsubscribe::MqttMsgUnsubscribe = MqttMsgUnsubscribeConstructor(MqttMsgBase(UNSUBSCRIBE_TYPE, client.staticMsgId), topics)
   client.staticMsgId += 1
   Write(client.channel, Serialize(unsubscribe))
-  put!((client.contextMsgChannel), MqttMsgContext(unsubscribe, WaitForUnsuback, ToPublish))
+  put!((client.contextMsgChannel), MqttMsgContextConstructor(unsubscribe, WaitForUnsuback, ToAcknowledge))
 end
 
 #Send Publish package and enque package into contextMsgChannel for processing if needed
 function MqttPublish(client::MqttClient, topic::String, message::Vector{UInt8}; qos::QosLevel = AT_MOST_ONCE, retain::Bool = false)
-  publish::MqttMsgPublish = MqttMsgPublish(topic, message=message, base=MqttMsgBase(PUBLISH_TYPE, client.staticMsgId, retain=retain, dup=false, qos=qos))
+  publish::MqttMsgPublish = MqttMsgPublishConstructor(topic, message=message, base=MqttMsgBase(PUBLISH_TYPE, client.staticMsgId, retain=retain, dup=false, qos=qos))
   client.staticMsgId += 1
   Write(client.channel, Serialize(publish))
-  if qos == UInt8(AT_LEAST_ONCE)
-  put!((client.contextMsgChannel), MqttMsgContext(publish, WaitForPuback, ToPublish))
-  elseif qos == UInt8(EXACTLY_ONCE)
-  put!((client.contextMsgChannel), MqttMsgContext(publish, WaitForPubrec, ToPublish))
+  if any(qos .== (AT_LEAST_ONCE, EXACTLY_ONCE))
+    put!((client.contextMsgChannel), MqttMsgContextConstructor(publish, qos == AT_LEAST_ONCE? WaitForPuback : WaitForPubrec, ToPublish))
   end
 end
