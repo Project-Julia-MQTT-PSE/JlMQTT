@@ -4,15 +4,12 @@ include("../MqttNetworkChannel.jl")
 #Mqtt Pubcomp Package
 mutable struct MqttMsgPubcomp <: MqttPacket
     msgBase::MqttMsgBase
+end
 
-    # default constructor
-    #MqttMsgPubcomp() = new(MqttMsgBase(PUBCOMP_TYPE, UInt16(0)))
-
-    # constructor
-    function MqttMsgPubcomp(msgBase = MqttMsgBase(PUBCOMP_TYPE, UInt16(0)))
-        return new(msgBase)
-    end # function
-end # struct
+#Pubcomp package constructor
+function MqttMsgPubcompConstructor(msgBase = MqttMsgBase(PUBCOMP_TYPE, UInt16(0)))
+    return MqttMsgPubcomp(msgBase)
+end
 
 #Serialize a MqttMsgPubcomp package
 #Return a Byte Array
@@ -55,7 +52,7 @@ end
 function MqttMsgPubcompParse(network::MqttNetworkChannel)
 
     remainingLength::Int = 0
-    msg::MqttMsgPubcomp = MqttMsgPubcomp()
+    msg::MqttMsgPubcomp = MqttMsgPubcompConstructor()
 
     remainingLength = decodeRemainingLength(network)
     buffer = Vector{UInt8}(remainingLength)
