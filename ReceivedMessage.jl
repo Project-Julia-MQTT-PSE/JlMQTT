@@ -2,7 +2,4 @@
 mutable struct ReceivedMessage
   topic::String
   message::String
-  function ReceivedMessage(topic::String, message::String)
-    return new(topic, message)
-  end
 end
