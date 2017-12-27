@@ -20,8 +20,8 @@ include("../Messages/MqttMsgUnsuback.jl")
 # Keep Alive thread, shuts down threads when timeout occurs
 #No return value
 function KeepAliveThread(client::MqttClient)
-  @async while client.isRunning
-    ping::MqttMsgPingreq = MqttMsgPingreq()
+  while client.isRunning
+    ping::MqttMsgPingreq = MqttMsgPingreqConstructor()
 
     Write(client.channel, Serialize(ping))
     while true
@@ -33,9 +33,12 @@ function KeepAliveThread(client::MqttClient)
         end
       else
         client.isRunning = false
+       close(client.contextMsgChannel)
+       close(client.sendReceiveChannel)
+       close(client.subscribedTopicMsgChannel)
         break
       end
-      client.lastCommTime += 1000
+      client.lastCommTime += 100
       sleep(1)
     end
     sleep(10)
@@ -50,49 +53,30 @@ function ReceiveThread(client::MqttClient)
   fixedHeaderFirstByte = UInt8[0x00]
   msgType::UInt8 = 0x00
 
-  @async while client.isRunning
+  while client.isRunning
     readBytes = Read(client.channel, fixedHeaderFirstByte)
     if readBytes > 0x00
-      msgType = ((fixedHeaderFirstByte[1] & MSG_TYPE_MASK) >> MSG_TYPE_OFFSET)::UInt8
-      if MsgType == UInt8(CONNECT_TYPE)
-        throw(ErrorException("WRONG BROKER MESSAGE! (CONNECT)"))
-      elseif msgType == UInt8(CONNACK_TYPE)
-        #println("CONNACK MESSAGE RECEIVED!")
+      msgtype = MsgType(UInt8((fixedHeaderFirstByte[1] & MSG_TYPE_MASK) >> MSG_TYPE_OFFSET))
+      if msgtype == CONNACK_TYPE
         put!(client.sendReceiveChannel, MsgConnackParse(client.channel))
-      elseif msgType == UInt8(PINGREQ_TYPE)
-        throw(ErrorException("WRONG BROKER MESSAGE! (PINGREQ)"))
-      elseif msgType == UInt8(PINGRESP_TYPE)
-        #println("PINGRESP MESSAGE RECEIVED!")
+      elseif msgtype == PINGRESP_TYPE
         put!((client.sendReceiveChannel), MsgPingrespParse(client.channel))
-      elseif msgType == UInt8(SUBSCRIBE_TYPE)
-        throw(ErrorException("WRONG BROKER MESSAGE! (SUBSCRIBE)"))
-      elseif msgType == UInt8(SUBACK_TYPE)
-        #println("SUBACK MESSAGE RECEIVED!")
+      elseif msgtype == SUBACK_TYPE
         ProcessReceivedMessage(MsgSubackParse(client.channel), client)
-      elseif msgType == UInt8(PUBLISH_TYPE)
-        #println("PUBLISH MESSAGE RECEIVED!")
+      elseif msgtype == PUBLISH_TYPE
         ProcessReceivedMessage(MsgPublishParse(client.channel, fixedHeaderFirstByte[1]), client)
-      elseif msgType == UInt8(PUBACK_TYPE)
-        #println("PUBACK MESSAGE RECEIVED!")
+      elseif msgtype == PUBACK_TYPE
         ProcessReceivedMessage(MsgPubackParse(client.channel), client)
-      elseif msgType == UInt8(PUBREC_TYPE)
-        #println("PUBREC MESSAGE RECEIVED!")
+      elseif msgtype == PUBREC_TYPE
         ProcessReceivedMessage(MsgPubrecParse(client.channel), client)
-      elseif msgType == UInt8(PUBREL_TYPE)
-        #println("PUBREL MESSAGE RECEIVED!")
+      elseif msgtype == PUBREL_TYPE
         ProcessReceivedMessage(MsgPubrelParse(client.channel), client)
-      elseif msgType == UInt8(PUBCOMP_TYPE)
-        #println("PUBCOMP MESSAGE RECEIVED!")
+      elseif msgtype == PUBCOMP_TYPE
         ProcessReceivedMessage(MsgPubackParse(client.channel), client)
-      elseif msgType == UInt8(UNSUBSCRIBE_TYPE)
-        throw(ErrorException("WRONG BROKER MESSAGE! (UNSUBSCRIBE)"))
-      elseif msgType == UInt8(UNSUBACK_TYPE)
-        #println("UNSUBACK MESSAGE RECEIVED!")
+      elseif msgtype == UNSUBACK_TYPE
         ProcessReceivedMessage(MsgUnsubackParse(client.channel), client)
-      elseif msgType == UInt8(DISCONNECT_TYPE)
-        throw(ErrorException("WRONG BROKER MESSAGE! (DISCONNECT)"))
       else
-        throw(ErrorException("WRONG BROKER MESSAGE! (UNKNOWN)"))
+        throw(ErrorException("WRONG BROKER MESSAGE! (NOT SUPPORTED PACKAGE)"))
       end
     end
   end
@@ -101,13 +85,17 @@ end
 #Loop through the Context Package Channel and check for potential resends or deletes
 #No Return value
 function KeepAliveContextChannelThread(client::MqttClient)
-  @async while client.isRunning
+  while client.isRunning
     lock(client.contextQueueLock)
     count::Int = length(client.contextMsgChannel.data)
     while count != 0
       tmp::MqttMsgContext = take!(client.contextMsgChannel)
-      #If package has reached timeout and has available reties, re-send and requery into queue
+      #If package has reached timeout and has available retries, re-send and requery into queue
       if tmp.timestamp >= MQTT_DEFAULT_CONTEXT_TIMEOUT && tmp.attempt <= MQTT_DEFAULT_CONTEXT_RETRY
+        if MsgType(tmp.message.msgBase.fixedHeader >> MSG_TYPE_OFFSET) == PUBLISH_TYPE && tmp.state == WaitForPubrec
+          #Set DUP = 1 for retry
+          tmp.message.msgBase.fixedHeader =  tmp.message.msgBase.fixedHeader | 0x04
+        end
         Write(client.channel, Serialize(tmp.message))
         tmp.attempt += 1
         tmp.timestamp = 1
