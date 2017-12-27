@@ -1,18 +1,15 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
-#Mqtt Pubrel Package
+#Pubrel Package
 mutable struct MqttMsgPubrel <: MqttPacket
     msgBase::MqttMsgBase
+end
 
-    # default constructor
-    MqttMsgPubrel() = new(MqttMsgBase(PUBREL_TYPE), 0)
-
-    # constructor
-    function MqttMsgPubrel(msgBase = MqttMsgBase(PUBREL_TYPE, UInt16(0)))
-        return new(msgBase)
-    end # function
-end # struct
+#Pubrel package constructor
+function MqttMsgPubrelConstructor(msgBase = MqttMsgBase(PUBREL_TYPE, UInt16(0)))
+  return MqttMsgPubrel(msgBase)
+end
 
 # Deserialize MQTT message publish release
 # returns a byte array
@@ -53,7 +50,7 @@ end
 #REturn Byte Array
 function MsgPubrelParse(network::MqttNetworkChannel)
       remainingLength::Int = 0
-      msg::MqttMsgPubrel = MqttMsgPubrel()
+      msg::MqttMsgPubrel = MqttMsgPubrelConstructor()
       remainingLength = decodeRemainingLength(network)
       buffer = Vector{UInt8}(remainingLength)
       Read(network, buffer)
