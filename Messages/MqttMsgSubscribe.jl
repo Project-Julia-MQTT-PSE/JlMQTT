@@ -6,24 +6,19 @@ const MIN_TOPIC_LENGTH = 1;
 const MESSAGE_ID_SIZE = 2;
 const QOS_LEVEL_MASK = 0x06
 
-#=Represent a Subscribe Package which can be send to the Broker
-fixedHeader = the FixedHeader value
-topic = topic to which the message will be published
-messageId = OPTIONAL, only required if QoS level is set to level 1 or 2, to identify a specific message
-=#
-
-#Mqtt Subscribe Package
+# Subscribe Package
 mutable struct MqttMsgSubscribe <: MqttPacket
   msgBase::MqttMsgBase
   topics::Vector{String}
   qosLevels::Vector{UInt8}
+end
 
-  function MqttMsgSubscribe(
-  msgBase::MqttMsgBase,
-  topics::Vector{String},
-  qosLevels::Vector{UInt8})
-  return new(msgBase, topics, qosLevels)
-  end
+#Subscribe package constructor
+function MqttMsgSubscribeConstructor(
+msgBase::MqttMsgBase,
+topics::Vector{String},
+qosLevels::Vector{UInt8})
+return MqttMsgSubscribe(msgBase, topics, qosLevels)
 end
 
 # Serialize MQTT message Subscribe
