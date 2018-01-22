@@ -101,6 +101,18 @@ function MqttMsgConnectConstructor(clientId::String;
   return this
 end
 
+"""
+Serialize(msgConnect::MqttMsgConnect)
+
+Serializes MQTT Connect message.
+
+## Parameters:
+\nMqttMsgConnect - ['JlMQTT.MqttMsgConnect'](@ref)
+
+## Returns:
+\n[out] Byte array.
+
+"""
 
 # Serialize MQTT message connect
 # returns a byte array
@@ -240,6 +252,20 @@ function Serialize(msgConnect::MqttMsgConnect)
   return msgPacket
 end
 
+"""
+addPacketField(dest::Array{UInt8, 1}, src::Array{UInt8, 1}, idx::Int)
+
+Adds bytes to destination array.
+
+## Parameters:
+\ndest - type Uint8 array
+\nsrc - type Uint8 array
+\nidx - type int array
+
+## Returns:
+\nNew index
+
+"""
 #Add bytes to destination
 #Return new index
 function addPacketField(dest::Array{UInt8, 1}, src::Array{UInt8, 1}, idx::Int)
