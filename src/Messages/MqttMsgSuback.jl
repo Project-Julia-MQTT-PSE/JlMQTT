@@ -1,22 +1,52 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
-# Suback Package
++"""
+ +JlMQTT.MqttMsgSuback
+ +
+ +Subscribe Acknowledgement Package
+ +
+ +"""
+
 mutable struct MqttMsgSuback <: MqttPacket
   msgBase::MqttMsgBase
   grantedQosLevels::Vector{UInt8}
+
+  #MqttMsgSuback() = new(MqttMsgBase(SUBACK_TYPE, UInt16(0)), 0, Array{UInt8}(1))
+  
+ +"""
+ +JlMQTT.MqttMsgSuback(base = MqttMsgBase(SUBACK_TYPE, UInt16(0)), grQosLevels::Vector{UInt8} = Array{UInt8}(5))
+    return new(base, grQosLevels)
+ +
+ +## Parameters:
+ +\nbase - [in] type ['MqttMsgBase'](@ref)
+ +\ngrQoSLevels - [in] type Vector{UInt8} = Array{UInt8}(5)
+ +
+ +## Returns:
+ +\n[out]  new(base, grQosLevels)(@ref)
+ +
+ +"""
+
+  function MqttMsgSuback(base = MqttMsgBase(SUBACK_TYPE, UInt16(0)), grQosLevels::Vector{UInt8} = Array{UInt8}(5))
+    return new(base, grQosLevels)
+  end
 end
 
-#Suback package constructor
-function MqttMsgSubackConstructor(base = MqttMsgBase(SUBACK_TYPE, UInt16(0)), grQosLevels::Vector{UInt8} = Array{UInt8}(5))
-  return MqttMsgSuback(base, grQosLevels)
-end
+ +"""
+ +JlMQTT.MsgSubackParse(network::MqttNetworkChannel)
+ +
+ +## Parameters:
+ +\nnetwork - [in] type ['MqttNetworkChannel'](@ref)
+ +
+ +## Returns:
+ +\n[out]  msg(@ref)
+ +
+ +"""
 
-#Parse a SUBACK Message
-#Return a MqttMsgSuback Package
+#Parse a SUBACK Message from the inbound stream
 function MsgSubackParse(network::MqttNetworkChannel)
   index::Int = 1
-  msg::MqttMsgSuback = MqttMsgSubackConstructor()
+  msg::MqttMsgSuback = MqttMsgSuback()
 
   remainingLength = decodeRemainingLength(network)
   buffer = Vector{UInt8}(remainingLength)
@@ -31,6 +61,7 @@ function MsgSubackParse(network::MqttNetworkChannel)
     msg.grantedQosLevels[qosIdx] = buffer[index]
     qosIdx += 1
     index += 1
+    #POTENTIAL FUTURE ERROR IN THE IF CONDITION
     if index > remainingLength
       break
     end
