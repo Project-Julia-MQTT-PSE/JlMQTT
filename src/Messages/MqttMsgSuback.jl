@@ -1,7 +1,7 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
-+"""
+"""
  +JlMQTT.MqttMsgSuback
  +
  +Subscribe Acknowledgement Package
@@ -14,7 +14,7 @@ mutable struct MqttMsgSuback <: MqttPacket
 
   #MqttMsgSuback() = new(MqttMsgBase(SUBACK_TYPE, UInt16(0)), 0, Array{UInt8}(1))
   
- +"""
+ """
  +JlMQTT.MqttMsgSuback(base = MqttMsgBase(SUBACK_TYPE, UInt16(0)), grQosLevels::Vector{UInt8} = Array{UInt8}(5))
     return new(base, grQosLevels)
  +
@@ -32,7 +32,7 @@ mutable struct MqttMsgSuback <: MqttPacket
   end
 end
 
- +"""
+ """
  +JlMQTT.MsgSubackParse(network::MqttNetworkChannel)
  +
  +## Parameters:
