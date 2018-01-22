@@ -1,7 +1,7 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
-"""
+ +"""
  +JlMQTT.MqttMsgSuback
  +
  +Subscribe Acknowledgement Package
@@ -32,7 +32,7 @@ mutable struct MqttMsgSuback <: MqttPacket
   end
 end
 
- """
+ +"""
  +JlMQTT.MsgSubackParse(network::MqttNetworkChannel)
  +
  +## Parameters:
