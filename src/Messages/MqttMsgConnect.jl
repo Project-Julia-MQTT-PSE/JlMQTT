@@ -110,7 +110,7 @@ Serializes MQTT Connect message.
 \nMqttMsgConnect - ['JlMQTT.MqttMsgConnect'](@ref)
 
 ## Returns:
-\n[out] Byte array.
+\n[out] ['msgPacket'](@ref)
 
 """
 
@@ -253,17 +253,17 @@ function Serialize(msgConnect::MqttMsgConnect)
 end
 
 """
-addPacketField(dest::Array{UInt8, 1}, src::Array{UInt8, 1}, idx::Int)
+JlMQTT.addPacketField(dest::Array{UInt8, 1}, src::Array{UInt8, 1}, idx::Int)
 
 Adds bytes to destination array.
 
 ## Parameters:
-\ndest - type Uint8 array
-\nsrc - type Uint8 array
-\nidx - type int array
+\ndest - [in] type Uint8 array
+\nsrc - [in] type Uint8 array
+\nidx - [in] type int array
 
 ## Returns:
-\nNew index
+\nidx - type Int
 
 """
 #Add bytes to destination
