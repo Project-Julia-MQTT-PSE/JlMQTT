@@ -1,47 +1,16 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
-+"""
- +JlMQTT.MqttMsgSuback
- +
- +Subscribe Acknowledgement Package
- +
- +"""
-
 mutable struct MqttMsgSuback <: MqttPacket
   msgBase::MqttMsgBase
   grantedQosLevels::Vector{UInt8}
 
   #MqttMsgSuback() = new(MqttMsgBase(SUBACK_TYPE, UInt16(0)), 0, Array{UInt8}(1))
   
- +"""
- +JlMQTT.MqttMsgSuback(base = MqttMsgBase(SUBACK_TYPE, UInt16(0)), grQosLevels::Vector{UInt8} = Array{UInt8}(5))
-    return new(base, grQosLevels)
- +
- +## Parameters:
- +\nbase - [in] type ['MqttMsgBase'](@ref)
- +\ngrQoSLevels - [in] type Vector{UInt8} = Array{UInt8}(5)
- +
- +## Returns:
- +\n[out]  new(base, grQosLevels)(@ref)
- +
- +"""
-
   function MqttMsgSuback(base = MqttMsgBase(SUBACK_TYPE, UInt16(0)), grQosLevels::Vector{UInt8} = Array{UInt8}(5))
     return new(base, grQosLevels)
   end
 end
-
- +"""
- +JlMQTT.MsgSubackParse(network::MqttNetworkChannel)
- +
- +## Parameters:
- +\nnetwork - [in] type ['MqttNetworkChannel'](@ref)
- +
- +## Returns:
- +\n[out]  msg(@ref)
- +
- +"""
 
 #Parse a SUBACK Message from the inbound stream
 function MsgSubackParse(network::MqttNetworkChannel)
