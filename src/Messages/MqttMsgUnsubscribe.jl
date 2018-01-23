@@ -2,16 +2,57 @@ include("Definitions.jl")
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
+"""
+JlMQTT.MqttMsgUnsubscribe
+
+This is the Unsubscribe Package 
+
+"""
+
 # Unsubscibe Package
 mutable struct MqttMsgUnsubscribe <: MqttPacket
     msgBase::MqttMsgBase
     topics::Vector{String}
 end
 
+"""
+ JlMQTT.MqttMsgUnsubscribeConstructor(base::MqttMsgBase = MqttMsgBase(UNSUBACK_TYPE, UInt16(0)), topics::Vector{String} = Vector{String})
+ 
+## Parameters:
+ \base - [in] type ['MqttMsgBase'](@ref)
+ \ntopics - [in] type Vector{String}
+
+ 
+ ## Returns:
+ \n[out]  ['MqttMsgUnsubscribe'](@ref)
+ 
+ """
 #unsubscrive package constructor
 function MqttMsgUnsubscribeConstructor(base::MqttMsgBase = MqttMsgBase(UNSUBACK_TYPE, UInt16(0)), topics::Vector{String} = Vector{String})
   return MqttMsgUnsubscribe(base, topics)
 end
+
+"""
+ JlMQTT.Serialize(msgUnsubscribe::MqttMsgUnsubscribe)
+  fixedHeaderSize::Int = 1
+  varHeaderSize::Int = 0
+  payloadSize::Int = 0
+  remainingLength::Int = 0
+  index::Int = 1
+
+ ## Parameters:
+ \nmsgUnsubscribe - [in] type ['MqttMsgUnsubscribe'](@ref)
+ \nfixedHeaderSize - [optional] type Int
+ \nvarHeaderSize - [optional] type Int
+ \npayloadSize - [optional] type Int
+ \nremainingLength - [optional] type Int
+ \nindex - [optional] type Int
+ 
+ ## Returns:
+ \n[out]  buffer 
+  buffer = Array{UInt8}(fixedHeaderSize + varHeaderSize + payloadSize)
+ 
+ """
 
 # Serialize MQTT message Unsubscibe
 #REturn Byte Array
