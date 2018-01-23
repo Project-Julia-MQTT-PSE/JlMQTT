@@ -6,6 +6,12 @@ const MIN_TOPIC_LENGTH = 1;
 const MESSAGE_ID_SIZE = 2;
 const QOS_LEVEL_MASK = 0x06
 
+"""
+JlMQTT.MqttMsgSubscribe
+
+Subscribe Package 
+
+"""
 # Subscribe Package
 mutable struct MqttMsgSubscribe <: MqttPacket
   msgBase::MqttMsgBase
@@ -13,6 +19,18 @@ mutable struct MqttMsgSubscribe <: MqttPacket
   qosLevels::Vector{UInt8}
 end
 
+"""
+ JlMQTT.MqttMsgSubscribeConstructor(msgBase::MqttMsgBase, topics::Vector{String}, qosLevels::Vector{UInt8})
+
+ ## Parameters:
+ \nmsgBase - [in] type ['MqttMsgBase'](@ref)
+ \ntopics - [in] type Vector{String}
+ \nqosLevels - [in] type Vector{String}
+ 
+ ## Returns:
+ \n[out]  ['MqttMsgSubscribe'](@ref)
+ 
+ """
 #Subscribe package constructor
 function MqttMsgSubscribeConstructor(
 msgBase::MqttMsgBase,
@@ -20,6 +38,30 @@ topics::Vector{String},
 qosLevels::Vector{UInt8})
 return MqttMsgSubscribe(msgBase, topics, qosLevels)
 end
+
+"""
+ JlMQTT.Serialize(msgSubscribe::MqttMsgSubscribe)
+  fixedHeaderSize::Int = 1
+  varHeaderSize::Int = 0
+  payloadSize::Int = 0
+  remainingLength::Int = 0
+  index::Int = 1
+
+ ## Parameters:
+ \nmsgSubscribe - [in] type ['MqttMsgSubscribe'](@ref)
+ \nfixedHeaderSize - [optional] type Int
+ \nvarHeaderSize - [optional] type Int
+ \npayloadSize - [optional] type Int
+ \nremainingLength - [optional] type Int
+ \nindex - [optional] type Int
+
+
+ 
+ ## Returns:
+ \n[out]  buffer 
+  buffer = Array{UInt8}(fixedHeaderSize + varHeaderSize + payloadSize)
+ 
+ """
 
 # Serialize MQTT message Subscribe
 #REturn byte Array
