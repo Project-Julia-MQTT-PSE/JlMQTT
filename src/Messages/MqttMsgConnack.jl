@@ -30,6 +30,18 @@ function MqttMsgConnackConstructor(returnCode::ConnackCode, sessionPresent::Bool
     return MqttMsgConnack(msgBase, returnCode, sessionPresent)
 end
 
+"""
+MsgConnackParse(network::MqttNetworkChannel)
+
+Deserializes connection acknowledgement package.
+
+## Paramters:
+\nnetwork - ['MqttNetworkChannel'](@ref)
+
+## Returns:
+\n[out] - msg ['MqttMsgConnack'](@ref)
+"""
+
 # Deserialize MQTT message connack
 #Returns a MqttMsgConnack Package
 function MsgConnackParse(network::MqttNetworkChannel)

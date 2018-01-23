@@ -36,6 +36,18 @@ function MqttMsgBase(msgType::MsgType, msgId::UInt16;
     return MqttMsgBase(mqttheader(retain, qos, dup, msgType), msgId)
 end
 
+"""
+JlMQTT.encodeRemainingLength(remainingLength::Int, buffer::Array{UInt8, 1}, idx)
+
+Determines remaining length so receiving station can determine how to read sent packet correctly.
+
+## Parameters:
+\nremainingLength - [in] type int
+\nbuffer - [in] type UInt8 array
+\nidx - [in] type int
+## Returns:
+\n value - type int
+"""
 #encodeRemainingLength(remainingLength, bufffer, idx)
 #Function determines remaining length depending on header size so packets can be
 #read correctly by receiving station.
@@ -54,6 +66,20 @@ function encodeRemainingLength(remainingLength::Int, buffer::Array{UInt8, 1}, id
     return idx
 end
 
+"""
+mqttheader(retain::Bool=false, qos::QosLevel=QosLevel(AT_LEAST_ONCE), dup::Bool=false, msgtype::MsgType=PUBLISH_TYPE)
+
+Creates UInt8 format for FixedHeader
+
+## Parameters:
+\nretain - [optional] type Boolean
+\nqos - [optional] ['QosLevel'](@ref)
+\ndup - [optional] type Boolean
+\n MsgType - [optional] ['MsgType'](@ref)
+## Returns:
+\n[out] flags - type UInt8 byte array
+
+"""
 #Create the UInt8 format for the FixedHeader
 #return fixiedHeader
 function mqttheader(retain::Bool=false, qos::QosLevel=QosLevel(AT_LEAST_ONCE), dup::Bool=false, msgtype::MsgType=PUBLISH_TYPE)
@@ -64,6 +90,16 @@ function mqttheader(retain::Bool=false, qos::QosLevel=QosLevel(AT_LEAST_ONCE), d
     return flags
 end
 
+"""
+decodeRemainingLength(network)
+
+Decodes remaining length.
+
+## Parameters:
+\nnetwork - [in] type String
+## Returns:
+\n[out] value tpye Int
+"""
 #decodeRemainingLength(network)
 #Decodes the remaining length by taking in a TCP socket as a parameter.
 function decodeRemainingLength(network)
