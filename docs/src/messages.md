@@ -8,6 +8,19 @@ This section documents the MQTT message types and methods related to message for
 JlMQTT.MqttMsgBase
 JlMQTT.MqttMsgConnect
 JlMQTT.MqttMsgConnack
+JlMQTT.MqttMsgContext
+JlMQTT.MqttMsgDisconnect
+JlMQTT.MqttMsgPingreq
+JlMQTT.MqttMsgresp
+JlMQTT.MqttMsgPuback
+JlMQTT.MqttMsgPubcomp
+JlMQTT.MqttMsgPublish
+JlMQTT.MqttMsgPubrec
+JlMQTT.MqttMsgrel
+JlMQTT.MqttMsgSuback
+JlMQTT.MqttMsgSubscribe
+JlMQTT.MqttMsgUnsubscribe
+JlMQTT.MqttMsgUnsubscribe
 ```
 
 ## Definitions
