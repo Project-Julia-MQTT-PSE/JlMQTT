@@ -17,12 +17,10 @@ For all information about MQTT protocol, plsease visit official web site http://
 
 ## Getting Started
 
-This sections provides a condensed overview of the package.
+To start this MQTT program, run JMqttImplementationTest.jl
 
 ### Installation
 
-To install JlMQTT.jl ...
+To install JlMQTT.jl run this on Julia "Atom" IDE and use a program such as Wireshark to show, for example, the publish and subscribe packets being sent across the connection. 
 
-### Example
 
-The following code shows how to ...
