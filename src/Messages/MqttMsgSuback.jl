@@ -1,12 +1,12 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
- +"""
- +JlMQTT.MqttMsgSuback
- +
- +Subscribe Acknowledgement Package
- +
- +"""
+ """
+ JlMQTT.MqttMsgSuback
+
+ Subscribe Acknowledgement Package
+
+ """
 
 mutable struct MqttMsgSuback <: MqttPacket
   msgBase::MqttMsgBase
@@ -15,33 +15,35 @@ mutable struct MqttMsgSuback <: MqttPacket
   #MqttMsgSuback() = new(MqttMsgBase(SUBACK_TYPE, UInt16(0)), 0, Array{UInt8}(1))
   
  """
- +JlMQTT.MqttMsgSuback(base = MqttMsgBase(SUBACK_TYPE, UInt16(0)), grQosLevels::Vector{UInt8} = Array{UInt8}(5))
+ JlMQTT.MqttMsgSuback(base = MqttMsgBase(SUBACK_TYPE, UInt16(0)), grQosLevels::Vector{UInt8} = Array{UInt8}(5))
     return new(base, grQosLevels)
- +
- +## Parameters:
- +\nbase - [in] type ['MqttMsgBase'](@ref)
- +\ngrQoSLevels - [in] type Vector{UInt8} = Array{UInt8}(5)
- +
- +## Returns:
- +\n[out]  new(base, grQosLevels)(@ref)
- +
- +"""
+ 
+ ## Parameters:
+ \nbase - [in] type ['MqttMsgBase'](@ref)
+ \ngrQoSLevels - [optional]type Vector{UInt8}
+ 
+ ## Returns:
+ \n[out]  new(base, grQosLevels)(@ref)
+ 
+ """
 
   function MqttMsgSuback(base = MqttMsgBase(SUBACK_TYPE, UInt16(0)), grQosLevels::Vector{UInt8} = Array{UInt8}(5))
     return new(base, grQosLevels)
   end
 end
 
- +"""
- +JlMQTT.MsgSubackParse(network::MqttNetworkChannel)
- +
- +## Parameters:
- +\nnetwork - [in] type ['MqttNetworkChannel'](@ref)
- +
- +## Returns:
- +\n[out]  msg(@ref)
- +
- +"""
+ """
+ JlMQTT.MsgSubackParse(network::MqttNetworkChannel)
+ 
+ ## Parameters:
+ \nnetwork - [in] type ['MqttNetworkChannel'](@ref)
+ \n index - [optional] type int
+ \n msg - [optional] type ['MqttMsgSuback'](@ref)
+ \n 
+ ## Returns:
+ \n[out]  msg['MqttMsgSuback'](@ref)
+ 
+ """
 
 #Parse a SUBACK Message from the inbound stream
 function MsgSubackParse(network::MqttNetworkChannel)
