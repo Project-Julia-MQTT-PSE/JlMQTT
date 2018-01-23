@@ -1,16 +1,44 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
+
+"""
+JIMQTT.MqttMsgPubrec
+
+Mqtt Pubrec Package
+
+"""
 #Mqtt Pubrec Package
 mutable struct MqttMsgPubrec <: MqttPacket
     msgBase::MqttMsgBase
 end
+
+"""
+JIMQTT.MqttMsgPubrecConstructor(msgBase = MqttMsgBase(PUBREC_TYPE, UInt16(0)))
+
+Pubrec package constructor
+
+## Parameters:
+\n[optional][`JlMQTT.MqttMsgBase`](@ref)
+## Returns:
+\n[out] Pubrec package
+"""
 
 #Pubrec package constructor
 function MqttMsgPubrecConstructor(msgBase = MqttMsgBase(PUBREC_TYPE, UInt16(0)))
     return MqttMsgPubrec(msgBase)
 end
 
+"""
+JIMQTT.Serialize(msg::MqttMsgPubrec)
+
+Serialize MQTT message publish received.
+
+## Parameters:
+\n[in][`JlMQTT.MqttMsgPubrec`](@ref)
+## Returns:
+\n[out] Byte Array
+"""
 
 # Serialize MQTT message publish receeived
 #REturn Byte Array
@@ -46,6 +74,16 @@ function Serialize(msg::MqttMsgPubrec)
 
     return buffer
 end
+"""
+JIMQTT.MsgPubrecParse(network::MqttNetworkChannel)
+
+Deserialize MQTT message publish receive
+
+## Parameters:
+\n[in][`JlMQTT.MqttNetworkChannel`](@ref)
+## Returns:
+\n[out] MqttMsgPubrec Package
+"""
 
 # Deserialize MQTT message publish receive
 #return MqttMsgPubrec Package

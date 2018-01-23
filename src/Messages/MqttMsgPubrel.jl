@@ -1,15 +1,42 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
+"""
+JIMQTT.MqttMsgPubrel
+
+Mqtt Pubrel Package
+
+"""
 #Pubrel Package
 mutable struct MqttMsgPubrel <: MqttPacket
     msgBase::MqttMsgBase
 end
+"""
+JIMQTT.MqttMsgPubrelConstructor(msgBase = MqttMsgBase(PUBREL_TYPE, UInt16(0)))
+
+Pubrel package constructor.
+
+## Parameters:
+\n[optional][`JlMQTT.MqttMsgBase`](@ref)
+## Returns:
+\n[out] MqttMsgPubrel package.
+"""
 
 #Pubrel package constructor
 function MqttMsgPubrelConstructor(msgBase = MqttMsgBase(PUBREL_TYPE, UInt16(0)))
   return MqttMsgPubrel(msgBase)
 end
+
+"""
+JIMQTT.Serialize(msg::MqttMsgPubrel)
+
+Deserialize MQTT message publish release
+
+## Parameters:
+\n[in][`JlMQTT.MqttMsgPubrel`](@ref)
+## Returns:
+\n[out] Byte array
+"""
 
 # Deserialize MQTT message publish release
 # returns a byte array
@@ -45,6 +72,16 @@ function Serialize(msg::MqttMsgPubrel)
 
   return buffer
 end
+"""
+JIMQTT.MsgPubrelParse(network::MqttNetworkChannel)
+
+Deserialize MQTT message publish release
+
+## Parameters:
+\n[in][`JlMQTT.MqttNetworkChannel`](@ref)
+## Returns:
+\n[out] Byte Array
+"""
 
 # Deserialize MQTT message publish release
 #REturn Byte Array

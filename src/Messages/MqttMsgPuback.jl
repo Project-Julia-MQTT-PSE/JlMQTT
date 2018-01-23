@@ -1,15 +1,45 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
+"""
+JIMQTT.MqttMsgPuback
+
+Mqtt Puback Package
+
+"""
 #Mqtt Puback Package
 mutable struct MqttMsgPuback <: MqttPacket
     msgBase::MqttMsgBase
 end
 
+
+"""
+JIMQTT.MqttMsgPubackConstructor(msgBase = MqttMsgBase(PUBACK_TYPE, UInt16(0)))
+
+Puback package constructor
+
+## Parameters:
+\n[optional][`JlMQTT.MqttMsgBase`](@ref)
+## Returns:
+\n[out] MqttMsgPuback Package
+"""
+
+
 #Puback package constructor
 function MqttMsgPubackConstructor(msgBase = MqttMsgBase(PUBACK_TYPE, UInt16(0)))
     return MqttMsgPuback(msgBase)
 end
+
+"""
+JIMQTT.MsgPubackParse(network::MqttNetworkChannel)
+
+Deserialize MQTT message publish acknowledge
+
+## Parameters:
+\n[in][`JlMQTT.MqttNetworkChannel`](@ref)
+## Returns:
+\n[out] MqttMsgPuback Package
+"""
 
 # Deserialize MQTT message publish acknowledge
 #Return a MqttMsgPuback Package
@@ -26,6 +56,18 @@ function MsgPubackParse(network::MqttNetworkChannel)
 
     return msg
 end
+
+
+"""
+JIMQTT.Serialize(message::MqttMsgPuback)
+
+Serialize a given MqttMsgPuback.
+
+## Parameters:
+\n[in][`JlMQTT.MqttMsgPuback`](@ref)
+## Returns:
+\n[out] Byte array.
+"""
 
 #Serialize a given MqttMsgPuback
 #Return a byte Array

@@ -7,12 +7,37 @@ const MIN_TOPIC_LENGTH = 1;
 const MESSAGE_ID_SIZE = 2;
 const QOS_LEVEL_MASK = 0x06
 
+"""
+JIMQTT.MqttMsgPublish
+
+Mqtt Publish Package
+
+"""
+
 #Mqtt Publish Package
 mutable struct MqttMsgPublish <: MqttPacket
   msgBase::MqttMsgBase
   topic::String
   message::Vector{UInt8}
 end
+
+
+"""
+JIMQTT.MqttMsgPublishConstructor(
+  topic::String;
+  message::Vector{UInt8} = Vector{UInt8}(1),
+  base = MqttMsgBase(PUBLISH_TYPE, UInt16(0), retain=false, dup=false, qos=AT_MOST_ONCE))
+
+Publish package constructor
+
+## Parameters:
+\n[in] type String
+\n[optional] type Vector{UInt8}
+\n[optional][`JlMQTT.MqttMsgBase`](@ref)
+## Returns:
+\n[out] MqttMsgPublish package.
+"""
+
 
 #Publish package constructor
 function MqttMsgPublishConstructor(
@@ -21,6 +46,18 @@ function MqttMsgPublishConstructor(
   base = MqttMsgBase(PUBLISH_TYPE, UInt16(0), retain=false, dup=false, qos=AT_MOST_ONCE))
   return MqttMsgPublish(base, topic, message)
 end
+
+"""
+JIMQTT.Serialize(msgPublish::MqttMsgPublish)
+
+Serialize the publish message.
+
+## Parameters:
+\n[in][`JlMQTT.MqttMsgPublish`](@ref)
+## Returns:
+\n[out] Byte array.
+"""
+
 
 #Serializes the publish message.
 #Return Byte Array
@@ -94,6 +131,19 @@ function Serialize(msgPublish::MqttMsgPublish)
   return msgPackage
 end
 
+"""
+JIMQTT.
+
+Deserialize MQTT message publish
+
+## Parameters:
+\n[in][`JlMQTT.MqttNetworkChannel`](@ref)
+\n[in] type UInt8
+\n[optional] type Int
+\n[optional][`JlMQTT.MqttMsgPublish`](@ref)
+## Returns:
+\n[out] MqttMsgPublish Package
+"""
 
 # Deserialize MQTT message publish
 #REturn a MqttMsgPub Packag

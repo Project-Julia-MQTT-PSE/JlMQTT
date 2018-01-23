@@ -1,16 +1,43 @@
 include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
+"""
+JIMQTT.MqttMsgPubcomp
+
+Mqtt Pubcomp Package
+
+"""
 #Mqtt Pubcomp Package
 mutable struct MqttMsgPubcomp <: MqttPacket
     msgBase::MqttMsgBase
 end
+
+"""
+JIMQTT.MqttMsgPubcompConstructor(msgBase = MqttMsgBase(PUBCOMP_TYPE, UInt16(0)))
+
+Pubcomp package constructor
+
+## Parameters:
+\n[optional][`JlMQTT.MqttMsgBase`](@ref)
+## Returns:
+\n[out] MqttMsgPubcomp package.
+"""
 
 #Pubcomp package constructor
 function MqttMsgPubcompConstructor(msgBase = MqttMsgBase(PUBCOMP_TYPE, UInt16(0)))
     return MqttMsgPubcomp(msgBase)
 end
 
+"""
+JIMQTT.Serialize(message::MqttMsgPubcomp)
+
+Serialize a MqttMsgPubcomp package.
+
+## Parameters:
+\n[in][`JlMQTT.MqttMsgPubcomp`](@ref)
+## Returns:
+\n[out] Byte array.
+"""
 #Serialize a MqttMsgPubcomp package
 #Return a Byte Array
 function Serialize(message::MqttMsgPubcomp)
@@ -47,8 +74,18 @@ function Serialize(message::MqttMsgPubcomp)
   return buffer
 end
 
+"""
+JIMQTT.MqttMsgPubcompParse(network::MqttNetworkChannel)
+
+Deserialize MQTT message publish complete
+
+## Parameters:
+\n[in][`JlMQTT.MqttNetworkChannel`](@ref)
+## Returns:
+\n[out] MqttMsgPubcomp Package
+"""
 # Deserialize MQTT message publish complete
-#REturn a MqttMsgPubcomp Package
+#Return a MqttMsgPubcomp Package
 function MqttMsgPubcompParse(network::MqttNetworkChannel)
 
     remainingLength::Int = 0
