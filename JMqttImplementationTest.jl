@@ -30,14 +30,14 @@ MqttPublish(client, "test/1", m, qos=AT_LEAST_ONCE)
 MqttPublish(client, "test/1", m, qos=EXACTLY_ONCE)
 MqttPublish(client, "test/1", m, qos=AT_MOST_ONCE)
 
-#Our tests 17.01.17
+#Attempted Connect test
 #MqttMsgConnectConstructor(clientId::String)
-client = MqttClientConstructor()
-MqttConnect(client, String("Client_1"))
+#client = MqttClientConstructor()
+#MqttConnect(client, String("Client_1"))
 
-msgPacketCheck = [0x10, 0x14, 0x00, 0x04, 0x4d, 0x51, 0x54, 0x54, 0x04, 0x02, 0xff, 0xff, 0x00, 0x08, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x31]
-var check = Serialize(msgConnect::MqttMsgConnect)
-assertEquals(msgPacketCheck, Serialize(msgConnect::MqttMsgConnect))
+#msgPacketCheck = [0x10, 0x14, 0x00, 0x04, 0x4d, 0x51, 0x54, 0x54, 0x04, 0x02, 0xff, 0xff, 0x00, 0x08, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x5f, 0x31]
+#var check = Serialize(msgConnect::MqttMsgConnect)
+#assertEquals(msgPacketCheck, Serialize(msgConnect::MqttMsgConnect))
 #assertEquals in Julia?
 
 MqttUnsubscribe(client, t)
