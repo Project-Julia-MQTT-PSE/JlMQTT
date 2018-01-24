@@ -13,7 +13,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "JlMQTT.jl Documentation",
     "category": "section",
-    "text": "Pages = [\"index.md\", \"publicinterface.md\", \"networking.md\", \"messages.md\"]\nDepth = 3"
+    "text": "Pages = [\"index.md\", \"publicinterface.md\", \"networking.md\", \"messages.md\"]\nDepth = 3"
 },
 
 {
@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Getting Started",
     "category": "section",
-    "text": "This sections provides a condensed overview of the package."
+    "text": "To start this MQTT program, run JMqttImplementationTest.jl"
 },
 
 {
@@ -37,15 +37,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Installation",
     "category": "section",
-    "text": "To install JlMQTT.jl ..."
-},
-
-{
-    "location": "index.html#Example-1",
-    "page": "Home",
-    "title": "Example",
-    "category": "section",
-    "text": "The following code shows how to ..."
+    "text": "To install JlMQTT.jl run this on Julia \"Atom\" IDE and use a program such as Wireshark to show, for example, the publish and subscribe packets being sent across the connection. "
 },
 
 {
@@ -101,7 +93,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Public Interface",
     "title": "Public Interface",
     "category": "section",
-    "text": "This section documents the public interface that provides an abstraction layer on MQTT messages and framing.JlMQTT.MqttConnect(client::JlMQTT.MqttClient, clientId::String)\nJlMQTT.MqttDisconnect(client::JlMQTT.MqttClient)\nJlMQTT.MqttSubscribe(client::JlMQTT.MqttClient, topics::Vector{String}, qosLevels::Vector{UInt8})\nJlMQTT.MqttUnsubscribe(client::JlMQTT.MqttClient, topics::Vector{String})\nJlMQTT.MqttPublish(client::JlMQTT.MqttClient, topic::String, message::Vector{UInt8}; qos::JlMQTT.QosLevel = AT_MOST_ONCE, retain::Bool = false)"
+    "text": "This section documents the public interface that provides an abstraction layer on MQTT messages and framing.JlMQTT.MqttConnect(client::JlMQTT.MqttClient, clientId::String)\nJlMQTT.MqttDisconnect(client::JlMQTT.MqttClient)\nJlMQTT.MqttSubscribe(client::JlMQTT.MqttClient, topics::Vector{String}, qosLevels::Vector{UInt8})\nJlMQTT.MqttUnsubscribe(client::JlMQTT.MqttClient, topics::Vector{String})\nJlMQTT.MqttPublish(client::JlMQTT.MqttClient, topic::String, message::Vector{UInt8}; qos::JlMQTT.QosLevel = AT_MOST_ONCE, retain::Bool = false)"
 },
 
 {
@@ -133,7 +125,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Public Interface",
     "title": "Types",
     "category": "section",
-    "text": "JlMQTT.MqttClient\nJlMQTT.MqttClientConstructor\nJlMQTT.WillOptions"
+    "text": "JlMQTT.MqttClient\nJlMQTT.MqttClientConstructor\nJlMQTT.WillOptions"
 },
 
 {
@@ -181,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Networking",
     "title": "Networking",
     "category": "section",
-    "text": "This section documents the interface and types needed to connect with a broker.JlMQTT.Connect(network::JlMQTT.MqttNetworkChannel)\nJlMQTT.Close(network::JlMQTT.MqttNetworkChannel)\nJlMQTT.Write(network::JlMQTT.MqttNetworkChannel, buffer::Vector{UInt8})\nJlMQTT.Read(network::JlMQTT.MqttNetworkChannel, buffer::Vector{UInt8})"
+    "text": "This section documents the interface and types needed to connect with a broker.JlMQTT.Connect(network::JlMQTT.MqttNetworkChannel)\nJlMQTT.Close(network::JlMQTT.MqttNetworkChannel)\nJlMQTT.Write(network::JlMQTT.MqttNetworkChannel, buffer::Vector{UInt8})\nJlMQTT.Read(network::JlMQTT.MqttNetworkChannel, buffer::Vector{UInt8})"
 },
 
 {
@@ -241,11 +233,115 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "messages.html#JlMQTT.MqttMsgContext",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgContext",
+    "category": "Type",
+    "text": "JlMQTT.MqttMsgContext\n\nA context package which describes the status of a message package.\n\n\n\n"
+},
+
+{
+    "location": "messages.html#JlMQTT.MqttMsgDisconnect",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgDisconnect",
+    "category": "Type",
+    "text": "JlMQTT.MqttMsgDisconnect\n\nDisconnect package\n\n\n\n"
+},
+
+{
+    "location": "messages.html#JlMQTT.MqttMsgPingreq",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgPingreq",
+    "category": "Type",
+    "text": "JlMQTT.MqttMsgPingreq\n\nPing request package\n\n\n\n"
+},
+
+{
+    "location": "messages.html#JlMQTT.MqttMsgPingresp",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgPingresp",
+    "category": "Type",
+    "text": "JlMQTT.MqttMsgPingresp\n\nPing rresponse package\n\n\n\n"
+},
+
+{
+    "location": "messages.html#JlMQTT.MqttMsgPuback",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgPuback",
+    "category": "Type",
+    "text": "JIMQTT.MqttMsgPuback\n\nMqtt Puback Package\n\n\n\n"
+},
+
+{
+    "location": "messages.html#JlMQTT.MqttMsgPubcomp",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgPubcomp",
+    "category": "Type",
+    "text": "JIMQTT.MqttMsgPubcomp\n\nMqtt Pubcomp Package\n\n\n\n"
+},
+
+{
+    "location": "messages.html#JlMQTT.MqttMsgPublish",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgPublish",
+    "category": "Type",
+    "text": "JIMQTT.MqttMsgPublish\n\nMqtt Publish Package\n\n\n\n"
+},
+
+{
+    "location": "messages.html#JlMQTT.MqttMsgPubrec",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgPubrec",
+    "category": "Type",
+    "text": "JIMQTT.MqttMsgPubrec\n\nMqtt Pubrec Package\n\n\n\n"
+},
+
+{
+    "location": "messages.html#JlMQTT.MqttMsgPubrel",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgPubrel",
+    "category": "Type",
+    "text": "JIMQTT.MqttMsgPubrel\n\nMqtt Pubrel Package\n\n\n\n"
+},
+
+{
+    "location": "messages.html#JlMQTT.MqttMsgSuback",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgSuback",
+    "category": "Type",
+    "text": "JlMQTT.MqttMsgSuback\n\nSubscribe Acknowledgement Package\n\n\n\n"
+},
+
+{
+    "location": "messages.html#JlMQTT.MqttMsgSubscribe",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgSubscribe",
+    "category": "Type",
+    "text": "JlMQTT.MqttMsgSubscribe\n\nSubscribe Package \n\n\n\n"
+},
+
+{
+    "location": "messages.html#JlMQTT.MqttMsgUnsuback",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgUnsuback",
+    "category": "Type",
+    "text": "JlMQTT.MqttMsgUnsuback\n\nThis is the Unsubscribe Acknowledgement Package \n\n\n\n"
+},
+
+{
+    "location": "messages.html#JlMQTT.MqttMsgUnsubscribe",
+    "page": "Messages",
+    "title": "JlMQTT.MqttMsgUnsubscribe",
+    "category": "Type",
+    "text": "JlMQTT.MqttMsgUnsubscribe\n\nThis is the Unsubscribe Package \n\n\n\n"
+},
+
+{
     "location": "messages.html#Types-1",
     "page": "Messages",
     "title": "Types",
     "category": "section",
-    "text": "JlMQTT.MqttMsgBase\nJlMQTT.MqttMsgConnect\nJlMQTT.MqttMsgConnack"
+    "text": "JlMQTT.MqttMsgBase\nJlMQTT.MqttMsgConnect\nJlMQTT.MqttMsgConnack\nJlMQTT.MqttMsgContext\nJlMQTT.MqttMsgDisconnect\nJlMQTT.MqttMsgPingreq\nJlMQTT.MqttMsgPingresp\nJlMQTT.MqttMsgPuback\nJlMQTT.MqttMsgPubcomp\nJlMQTT.MqttMsgPublish\nJlMQTT.MqttMsgPubrec\nJlMQTT.MqttMsgPubrel\nJlMQTT.MqttMsgSuback\nJlMQTT.MqttMsgSubscribe\nJlMQTT.MqttMsgUnsuback\nJlMQTT.MqttMsgUnsubscribe"
 },
 
 {
@@ -277,7 +373,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Messages",
     "title": "Definitions",
     "category": "section",
-    "text": "JlMQTT.MsgType\nJlMQTT.QosLevel\nJlMQTT.ConnackCode"
+    "text": "JlMQTT.MsgType\nJlMQTT.QosLevel\nJlMQTT.ConnackCode"
 },
 
 {
@@ -309,7 +405,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Messages",
     "title": "Constructors",
     "category": "section",
-    "text": "JlMQTT.MqttMsgBase(msgType::JlMQTT.MsgType, msgId::UInt16)\nJlMQTT.MqttMsgConnectConstructor(clientId::String)\nJlMQTT.MqttMsgConnackConstructor(returnCode::JlMQTT.ConnackCode, sessionPresent::Bool)"
+    "text": "JlMQTT.MqttMsgBase(msgType::JlMQTT.MsgType, msgId::UInt16)\nJlMQTT.MqttMsgConnectConstructor(clientId::String)\nJlMQTT.MqttMsgConnackConstructor(returnCode::JlMQTT.ConnackCode, sessionPresent::Bool)"
 },
 
 ]}

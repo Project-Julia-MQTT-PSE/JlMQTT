@@ -2,7 +2,7 @@ include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
 """
-JIMQTT.MqttMsgPubcomp
+JlMQTT.MqttMsgPubcomp
 
 Mqtt Pubcomp Package
 
@@ -13,7 +13,7 @@ mutable struct MqttMsgPubcomp <: MqttPacket
 end
 
 """
-JIMQTT.MqttMsgPubcompConstructor(msgBase = MqttMsgBase(PUBCOMP_TYPE, UInt16(0)))
+JlMQTT.MqttMsgPubcompConstructor(msgBase = MqttMsgBase(PUBCOMP_TYPE, UInt16(0)))
 
 Pubcomp package constructor
 
@@ -29,7 +29,7 @@ function MqttMsgPubcompConstructor(msgBase = MqttMsgBase(PUBCOMP_TYPE, UInt16(0)
 end
 
 """
-JIMQTT.Serialize(message::MqttMsgPubcomp)
+JlMQTT.Serialize(message::MqttMsgPubcomp)
 
 Serialize a MqttMsgPubcomp package.
 
@@ -75,7 +75,7 @@ function Serialize(message::MqttMsgPubcomp)
 end
 
 """
-JIMQTT.MqttMsgPubcompParse(network::MqttNetworkChannel)
+JlMQTT.MqttMsgPubcompParse(network::MqttNetworkChannel)
 
 Deserialize MQTT message publish complete
 

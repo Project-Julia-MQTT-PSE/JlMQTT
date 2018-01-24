@@ -2,7 +2,7 @@ include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
 """
-JIMQTT.MqttMsgPuback
+JlMQTT.MqttMsgPuback
 
 Mqtt Puback Package
 
@@ -14,7 +14,7 @@ end
 
 
 """
-JIMQTT.MqttMsgPubackConstructor(msgBase = MqttMsgBase(PUBACK_TYPE, UInt16(0)))
+JlMQTT.MqttMsgPubackConstructor(msgBase = MqttMsgBase(PUBACK_TYPE, UInt16(0)))
 
 Puback package constructor
 
@@ -31,7 +31,7 @@ function MqttMsgPubackConstructor(msgBase = MqttMsgBase(PUBACK_TYPE, UInt16(0)))
 end
 
 """
-JIMQTT.MsgPubackParse(network::MqttNetworkChannel)
+JlMQTT.MsgPubackParse(network::MqttNetworkChannel)
 
 Deserialize MQTT message publish acknowledge
 
@@ -59,7 +59,7 @@ end
 
 
 """
-JIMQTT.Serialize(message::MqttMsgPuback)
+JlMQTT.Serialize(message::MqttMsgPuback)
 
 Serialize a given MqttMsgPuback.
 

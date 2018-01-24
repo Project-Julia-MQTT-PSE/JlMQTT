@@ -11,15 +11,15 @@ JlMQTT.MqttMsgConnack
 JlMQTT.MqttMsgContext
 JlMQTT.MqttMsgDisconnect
 JlMQTT.MqttMsgPingreq
-JlMQTT.MqttMsgresp
+JlMQTT.MqttMsgPingresp
 JlMQTT.MqttMsgPuback
 JlMQTT.MqttMsgPubcomp
 JlMQTT.MqttMsgPublish
 JlMQTT.MqttMsgPubrec
-JlMQTT.MqttMsgrel
+JlMQTT.MqttMsgPubrel
 JlMQTT.MqttMsgSuback
 JlMQTT.MqttMsgSubscribe
-JlMQTT.MqttMsgUnsubscribe
+JlMQTT.MqttMsgUnsuback
 JlMQTT.MqttMsgUnsubscribe
 ```
 

@@ -8,7 +8,7 @@ const MESSAGE_ID_SIZE = 2;
 const QOS_LEVEL_MASK = 0x06
 
 """
-JIMQTT.MqttMsgPublish
+JlMQTT.MqttMsgPublish
 
 Mqtt Publish Package
 
@@ -23,7 +23,7 @@ end
 
 
 """
-JIMQTT.MqttMsgPublishConstructor(
+JlMQTT.MqttMsgPublishConstructor(
   topic::String;
   message::Vector{UInt8} = Vector{UInt8}(1),
   base = MqttMsgBase(PUBLISH_TYPE, UInt16(0), retain=false, dup=false, qos=AT_MOST_ONCE))
@@ -48,7 +48,7 @@ function MqttMsgPublishConstructor(
 end
 
 """
-JIMQTT.Serialize(msgPublish::MqttMsgPublish)
+JlMQTT.Serialize(msgPublish::MqttMsgPublish)
 
 Serialize the publish message.
 
@@ -132,7 +132,7 @@ function Serialize(msgPublish::MqttMsgPublish)
 end
 
 """
-JIMQTT.
+JlMQTT.
 
 Deserialize MQTT message publish
 

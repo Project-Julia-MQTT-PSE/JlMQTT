@@ -2,7 +2,7 @@ include("MqttMsgBase.jl")
 include("../MqttNetworkChannel.jl")
 
 """
-JIMQTT.MqttMsgPubrel
+JlMQTT.MqttMsgPubrel
 
 Mqtt Pubrel Package
 
@@ -12,7 +12,7 @@ mutable struct MqttMsgPubrel <: MqttPacket
     msgBase::MqttMsgBase
 end
 """
-JIMQTT.MqttMsgPubrelConstructor(msgBase = MqttMsgBase(PUBREL_TYPE, UInt16(0)))
+JlMQTT.MqttMsgPubrelConstructor(msgBase = MqttMsgBase(PUBREL_TYPE, UInt16(0)))
 
 Pubrel package constructor.
 
@@ -28,7 +28,7 @@ function MqttMsgPubrelConstructor(msgBase = MqttMsgBase(PUBREL_TYPE, UInt16(0)))
 end
 
 """
-JIMQTT.Serialize(msg::MqttMsgPubrel)
+JlMQTT.Serialize(msg::MqttMsgPubrel)
 
 Deserialize MQTT message publish release
 
@@ -73,7 +73,7 @@ function Serialize(msg::MqttMsgPubrel)
   return buffer
 end
 """
-JIMQTT.MsgPubrelParse(network::MqttNetworkChannel)
+JlMQTT.MsgPubrelParse(network::MqttNetworkChannel)
 
 Deserialize MQTT message publish release
 
